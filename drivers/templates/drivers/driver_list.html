@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Drivers - Trucking Tracker{% endblock %}
+
+{% block page_title %}Drivers{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center space-x-3">
+        <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" placeholder="Search drivers..." class="form-input pl-10 w-64">
+        </div>
+        <select class="form-input w-40">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+            <option value="terminated">Terminated</option>
+        </select>
+    </div>
+    <button hx-get="{% url 'driver_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+            class="btn-primary flex items-center space-x-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <span>Add Driver</span>
+    </button>
+</div>
+
+<div class="card overflow-hidden">
+    <table class="w-full">
+        <thead class="table-header">
+            <tr>
+                <th>Full Name</th>
+                <th>Contact</th>
+                <th>License #</th>
+                <th>License Expiry</th>
+                <th>Truck</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for driver in drivers %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="table-cell font-medium text-[#541A1A]">{{ driver.full_name }}</td>
+                <td class="table-cell">{{ driver.contact_number }}</td>
+                <td class="table-cell font-mono text-sm">{{ driver.license_number }}</td>
+                <td class="table-cell">
+                    {% if driver.is_license_expired %}
+                    <span class="badge bg-red-100 text-red-700">{{ driver.license_expiry|date:"M d, Y" }}</span>
+                    {% elif driver.days_until_license_expiry <= 30 %}
+                    <span class="badge bg-yellow-100 text-yellow-700">{{ driver.license_expiry|date:"M d, Y" }}</span>
+                    {% else %}
+                    <span>{{ driver.license_expiry|date:"M d, Y" }}</span>
+                    {% endif %}
+                </td>
+                <td class="table-cell">{{ driver.assigned_truck.plate_number|default:"—" }}</td>
+                <td class="table-cell">
+                    {% if driver.employment_status == "active" %}
+                    <span class="badge bg-green-100 text-green-700">Active</span>
+                    {% elif driver.employment_status == "inactive" %}
+                    <span class="badge bg-gray-100 text-gray-600">Inactive</span>
+                    {% elif driver.employment_status == "suspended" %}
+                    <span class="badge bg-orange-100 text-orange-700">Suspended</span>
+                    {% elif driver.employment_status == "terminated" %}
+                    <span class="badge bg-red-100 text-red-700">Terminated</span>
+                    {% endif %}
+                </td>
+                <td class="table-cell">
+                    <div class="flex items-center space-x-2">
+                        <button hx-get="{% url 'driver_modal_detail' pk=driver.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-[#810B38] hover:text-[#5C0828] text-sm font-medium">View</button>
+                        <button hx-get="{% url 'driver_modal_edit' pk=driver.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-amber-600 hover:text-amber-800 text-sm font-medium ml-3">Edit</button>
+                        <button hx-get="{% url 'driver_modal_delete' pk=driver.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-red-600 hover:text-red-800 text-sm font-medium ml-3">Delete</button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="table-cell">
+                    <div class="empty-state">
+                        <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <p class="text-gray-500 font-medium">No drivers registered yet</p>
+                        <p class="text-gray-400 text-sm mt-1">Get started by adding your first driver.</p>
+                        <button hx-get="{% url 'driver_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="btn-primary inline-flex items-center space-x-2 mt-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <span>Add Driver</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

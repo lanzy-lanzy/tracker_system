@@ -1,0 +1,69 @@
+{% load humanize %}
+<div class="p-6" x-data="{ submitting: false }">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-[#541A1A]">{% if form_cargo %}Edit{% else %}Add New{% endif %} Cargo</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+  {% if error %}<div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{{ error }}</div>{% endif %}
+  <form hx-post="{{ action_url }}" hx-target="#modal-content" hx-swap="innerHTML" @submit="submitting = true">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label" for="trip">Trip</label>
+        <select id="trip" name="trip" required class="form-input">
+          <option value="">Select Trip</option>
+          {% for t in trips %}
+          <option value="{{ t.pk }}" {% if form_cargo and form_cargo.trip_id == t.pk %}selected{% endif %}>{{ t.reference_number }} - {{ t.client.client_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="cargo_type">Cargo Type</label>
+        <input id="cargo_type" type="text" name="cargo_type" value="{{ form_cargo.cargo_type|default:'' }}" required class="form-input" placeholder="e.g. Electronics, Furniture">
+      </div>
+      <div>
+        <label class="form-label" for="description">Description</label>
+        <textarea id="description" name="description" rows="3" class="form-input">{{ form_cargo.description|default:'' }}</textarea>
+      </div>
+      <div>
+        <label class="form-label" for="weight">Weight (kg)</label>
+        <input id="weight" type="number" step="0.01" name="weight" value="{{ form_cargo.weight|default:'' }}" class="form-input">
+      </div>
+      <div>
+        <label class="form-label" for="quantity">Quantity</label>
+        <input id="quantity" type="number" name="quantity" value="{{ form_cargo.quantity|default:'' }}" class="form-input">
+      </div>
+      <div>
+        <label class="form-label" for="special_handling">Special Handling Instructions</label>
+        <textarea id="special_handling" name="special_handling" rows="2" class="form-input">{{ form_cargo.special_handling|default:'' }}</textarea>
+      </div>
+      <div>
+        <label class="form-label" for="condition_before">Condition Before</label>
+        <select id="condition_before" name="condition_before" class="form-input">
+          <option value="">— Select —</option>
+          <option value="excellent" {% if form_cargo and form_cargo.condition_before == 'excellent' %}selected{% endif %}>Excellent</option>
+          <option value="good" {% if form_cargo and form_cargo.condition_before == 'good' %}selected{% endif %}>Good</option>
+          <option value="fair" {% if form_cargo and form_cargo.condition_before == 'fair' %}selected{% endif %}>Fair</option>
+          <option value="damaged" {% if form_cargo and form_cargo.condition_before == 'damaged' %}selected{% endif %}>Damaged</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="condition_after">Condition After</label>
+        <select id="condition_after" name="condition_after" class="form-input">
+          <option value="">— Select —</option>
+          <option value="excellent" {% if form_cargo and form_cargo.condition_after == 'excellent' %}selected{% endif %}>Excellent</option>
+          <option value="good" {% if form_cargo and form_cargo.condition_after == 'good' %}selected{% endif %}>Good</option>
+          <option value="fair" {% if form_cargo and form_cargo.condition_after == 'fair' %}selected{% endif %}>Fair</option>
+          <option value="damaged" {% if form_cargo and form_cargo.condition_after == 'damaged' %}selected{% endif %}>Damaged</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+      <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Cancel</button>
+      <button type="submit" class="btn-primary" :disabled="submitting">
+        <span x-show="!submitting">Save</span>
+        <span x-show="submitting">Saving...</span>
+      </button>
+    </div>
+  </form>
+</div>

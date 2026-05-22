@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Driver Performance{% endblock %}
+{% block page_title %}Driver Performance Report{% endblock %}
+{% block print_title %}Driver Performance Report{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="card p-4 flex justify-between items-center">
+        <p class="text-sm text-gray-600">Driver trip counts and completion rates</p>
+        <div class="flex gap-2">
+            <button onclick="window.print()" class="btn-secondary">Print</button>
+            <a href="{% url 'driver_performance_pdf' %}" class="btn-secondary">PDF</a>
+        </div>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="table-header">
+                    <tr>
+                        <th>Driver</th>
+                        <th>Total Trips</th>
+                        <th>Completed</th>
+                        <th>Cancelled</th>
+                        <th>Completion Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for driver in drivers %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="table-cell font-medium">{{ driver.full_name }}</td>
+                        <td class="table-cell">{{ driver.total_trips|default:0 }}</td>
+                        <td class="table-cell">{{ driver.completed_trips|default:0 }}</td>
+                        <td class="table-cell">{{ driver.cancelled_trips|default:0 }}</td>
+                        <td class="table-cell">
+                            {% if driver.total_trips > 0 %}
+                            <span class="badge
+                                {% if driver.completion_rate >= 80 %}bg-green-100 text-green-800
+                                {% elif driver.completion_rate >= 50 %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ driver.completion_rate|floatformat:1 }}%
+                            </span>
+                            {% else %}
+                            <span class="text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty-state">No driver data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

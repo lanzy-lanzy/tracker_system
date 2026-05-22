@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trucking Tracker{% endblock %}</title>
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon/favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'favicon/apple-touch-icon.png' %}">
+    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+    <script src="{% static 'vendor/tailwind.min.js' %}"></script>
+    <script src="{% static 'vendor/htmx.min.js' %}"></script>
+    <script defer src="{% static 'vendor/alpine.min.js' %}"></script>
+    <style>
+        :root {
+            --primary: #810B38;
+            --primary-light: #9C0E43;
+            --primary-dark: #5C0828;
+            --cream: #F1E2D1;
+            --beige: #DCC3AA;
+            --dark: #541A1A;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --info: #0284c7;
+        }
+        body {
+            background-color: var(--cream);
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        .sidebar-link {
+            transition: all 0.2s ease;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .sidebar-link.active {
+            border-left: 3px solid white;
+        }
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: box-shadow 0.2s ease;
+        }
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .stat-card {
+            background: white;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--primary);
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        .btn-secondary {
+            background-color: var(--beige);
+            color: var(--dark);
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #c9ae93;
+        }
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(129,11,56,0.1);
+        }
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        .table-header {
+            background-color: var(--primary);
+            color: white;
+        }
+        .table-header th {
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .table-cell {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 9999;
+        }
+        .modal-overlay {
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6b7280;
+        }
+        [x-cloak] { display: none !important; }
+        .print-only { display: none; }
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .htmx-request .htmx-indicator {
+            opacity: 1;
+        }
+        .htmx-request.htmx-indicator {
+            opacity: 1;
+        }
+        @media (max-width: 768px) {
+            .sidebar-mobile {
+                position: fixed;
+                inset: 0;
+                z-index: 50;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar-mobile.open {
+                transform: translateX(0);
+            }
+        }
+        @media print {
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { background: white !important; font-size: 10pt; line-height: 1.5; color: #1f2937; }
+            header, .sidebar-mobile, .sidebar-mobile + div, .toast-container,
+            form, .btn-primary, .btn-secondary, .btn-danger, button,
+            [x-cloak], nav, #modal-content, [x-data="modal"],
+            .fixed, .inset-0, .z-50, .z-40 { display: none !important; }
+            .flex.h-screen { display: block !important; height: auto !important; overflow: visible !important; }
+            .flex-1 { display: block !important; overflow: visible !important; }
+            .overflow-y-auto { overflow: visible !important; }
+            main { padding: 0 !important; }
+            .space-y-6 > * + * { margin-top: 14pt !important; }
+            .card, .stat-card { break-inside: avoid; }
+            .print-header { margin-bottom: 20pt; padding-bottom: 10pt; }
+            .print-header h1 { font-size: 20pt; color: #541A1A; font-weight: 700; margin: 0 0 2pt 0; }
+            .print-meta { font-size: 8pt; color: #6B7280; margin: 0; }
+            .print-header hr { border: none; border-top: 2px solid #810B38; margin: 8pt 0 0 0; }
+            .stat-card { box-shadow: none !important; border: 1px solid #d1d5db !important; border-left: 4px solid #810B38 !important; border-radius: 4pt !important; padding: 8pt 12pt !important; margin-bottom: 10pt; }
+            .stat-card .text-2xl { font-size: 14pt !important; }
+            .stat-card .text-3xl { font-size: 16pt !important; }
+            .grid { display: flex !important; flex-wrap: wrap !important; gap: 10pt !important; }
+            .grid > * { flex: 1 1 180px !important; }
+            .print-summary { margin-bottom: 14pt; padding: 6pt 0; border-bottom: 1px solid #e5e7eb; font-size: 9pt; color: #374151; }
+            table { width: 100% !important; border-collapse: collapse !important; font-size: 8.5pt !important; }
+            thead { display: table-header-group !important; }
+            tbody { display: table-row-group !important; }
+            tr { break-inside: avoid; }
+            th { background: #810B38 !important; color: white !important; padding: 6pt 8pt !important; font-size: 7.5pt !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; text-align: left !important; font-weight: 600 !important; }
+            td { padding: 5pt 8pt !important; border-bottom: 1px solid #e5e7eb !important; font-size: 8.5pt !important; vertical-align: middle !important; }
+            tbody tr:nth-child(even) td { background: #f9fafb !important; }
+            tfoot td { font-weight: 600 !important; border-top: 2px solid #9ca3af !important; }
+            .badge { display: inline !important; padding: 0 !important; background: none !important; color: #1f2937 !important; font-size: 8.5pt !important; font-weight: 500 !important; }
+            .table-header th { background: #810B38 !important; color: white !important; }
+            .text-\\[\\#541A1A\\] { color: #541A1A !important; }
+            .text-\\[\\#810B38\\] { color: #810B38 !important; }
+            .text-green-600 { color: #16a34a !important; }
+            .text-red-600 { color: #dc2626 !important; }
+            a { color: #810B38 !important; }
+            @page { margin: 0.6in 0.5in; }
+            .page-break { page-break-before: always; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toast-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+                     class="mb-2 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium
+                     {% if message.tags == 'error' %}bg-red-600
+                     {% elif message.tags == 'success' %}bg-green-600
+                     {% elif message.tags == 'warning' %}bg-yellow-600
+                     {% else %}bg-blue-600{% endif %}">
+                    <div class="flex items-center justify-between">
+                        <span>{{ message }}</span>
+                        <button @click="show = false" class="ml-3 text-white/80 hover:text-white">&times;</button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+        <div x-data="{ sidebarOpen: window.innerWidth >= 768 }" class="flex h-screen overflow-hidden">
+        <div x-show="sidebarOpen" x-cloak
+             @keydown.escape.window="sidebarOpen = false"
+             class="sidebar-mobile md:relative md:translate-x-0 md:w-64 bg-[#810B38] text-white flex-shrink-0 overflow-y-auto"
+             :class="{ 'open': sidebarOpen }">
+            <div class="px-4 py-3 border-b border-white/10">
+                <div class="flex items-center space-x-3 h-11">
+                    <div class="w-10 h-10 shrink-0">
+                        <img src="{% static 'logo/tracker_logo.png' %}" alt="TT" class="w-10 h-10 object-contain rounded-lg">
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="font-bold text-lg leading-tight truncate">Trucking Tracker</h1>
+                        <p class="text-xs text-white/60 truncate">Fleet Management</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="p-3 space-y-1">
+                <a href="{% url 'dashboard' %}"
+                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'dashboard' %}active bg-white/10{% endif %}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <div x-data="{ open: {% if request.resolver_match.url_name in 'truck_list truck_create truck_detail truck_edit truck_delete truck_modal_create truck_modal_edit truck_modal_detail truck_modal_delete driver_list driver_create driver_detail driver_edit driver_delete driver_modal_create driver_modal_edit driver_modal_detail driver_modal_delete' %}true{% else %}false{% endif %} }">
+                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'truck_list truck_create truck_detail truck_edit truck_delete truck_modal_create truck_modal_edit truck_modal_detail truck_modal_delete driver_list driver_create driver_detail driver_edit driver_delete driver_modal_create driver_modal_edit driver_modal_detail driver_modal_delete' %} active bg-white/10{% endif %}">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Fleet</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                        <a href="{% url 'truck_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'truck_list' %}active bg-white/10{% endif %}">Trucks</a>
+                        <a href="{% url 'driver_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'driver_list' %}active bg-white/10{% endif %}">Drivers</a>
+                    </div>
+                </div>
+
+                <div x-data="{ open: {% if request.resolver_match.url_name in 'trip_list trip_create trip_detail trip_edit trip_delete trip_update_status trip_upload_proof trip_filter trip_search trip_modal_create trip_modal_edit trip_modal_detail trip_modal_delete cargo_list cargo_create cargo_edit cargo_delete cargo_modal_create cargo_modal_edit cargo_modal_delete client_list client_create client_detail client_edit client_delete client_modal_create client_modal_edit client_modal_detail client_modal_delete' %}true{% else %}false{% endif %} }">
+                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'trip_list trip_create trip_detail trip_edit trip_delete trip_update_status trip_upload_proof trip_filter trip_search trip_modal_create trip_modal_edit trip_modal_detail trip_modal_delete cargo_list cargo_create cargo_edit cargo_delete cargo_modal_create cargo_modal_edit cargo_modal_delete client_list client_create client_detail client_edit client_delete client_modal_create client_modal_edit client_modal_detail client_modal_delete' %} active bg-white/10{% endif %}">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <span>Operations</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                        <a href="{% url 'trip_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'trip_list' %}active bg-white/10{% endif %}">Trips</a>
+                        <a href="{% url 'cargo_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'cargo_list' %}active bg-white/10{% endif %}">Cargo</a>
+                        <a href="{% url 'client_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'client_list' %}active bg-white/10{% endif %}">Clients</a>
+                    </div>
+                </div>
+
+                <div x-data="{ open: {% if request.resolver_match.url_name in 'expense_list expense_create expense_edit expense_delete expense_modal_create expense_modal_edit expense_modal_delete payment_list payment_create payment_edit payment_delete payment_modal_create payment_modal_edit payment_modal_delete' %}true{% else %}false{% endif %} }">
+                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'expense_list expense_create expense_edit expense_delete expense_modal_create expense_modal_edit expense_modal_delete payment_list payment_create payment_edit payment_delete payment_modal_create payment_modal_edit payment_modal_delete' %} active bg-white/10{% endif %}">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>Finance</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                        <a href="{% url 'expense_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'expense_list' %}active bg-white/10{% endif %}">Expenses</a>
+                        <a href="{% url 'payment_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'payment_list' %}active bg-white/10{% endif %}">Payments</a>
+                    </div>
+                </div>
+
+                <a href="{% url 'maintenance_list' %}"
+                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'maintenance_list' %}active bg-white/10{% endif %}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>Maintenance</span>
+                </a>
+
+                <div x-data="{ open: {% if request.resolver_match.url_name in 'report_dashboard daily_trip_report monthly_trip_report truck_utilization_report driver_performance_report maintenance_report expense_report payment_report profit_loss_report' %}true{% else %}false{% endif %} }">
+                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'report_dashboard daily_trip_report monthly_trip_report truck_utilization_report driver_performance_report maintenance_report expense_report payment_report profit_loss_report' %} active bg-white/10{% endif %}">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Reports</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                        <a href="{% url 'report_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'report_dashboard' %}active bg-white/10{% endif %}">Report Center</a>
+                        <a href="{% url 'daily_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'daily_trip_report' %}active bg-white/10{% endif %}">Daily Trips</a>
+                        <a href="{% url 'monthly_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'monthly_trip_report' %}active bg-white/10{% endif %}">Monthly Trips</a>
+                        <a href="{% url 'profit_loss_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'profit_loss_report' %}active bg-white/10{% endif %}">Profit & Loss</a>
+                    </div>
+                </div>
+
+                {% if user.profile.role == 'admin' %}
+                <div class="pt-4">
+                    <hr class="border-t border-white/20 mb-3">
+                    <p class="px-3 text-xs text-white/40 font-semibold uppercase tracking-wider">Administration</p>
+                    <a href="{% url 'user_list' %}"
+                       class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm mt-2 {% if request.resolver_match.url_name == 'user_list' %}active bg-white/10{% endif %}">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+                        <span>Users</span>
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+        </div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="flex items-center justify-between px-4 py-3">
+                    <div class="flex items-center space-x-2 min-w-0">
+                        <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        </button>
+                        <div class="min-w-0">
+                            <h2 class="text-lg font-semibold text-[#541A1A] truncate">{% block page_title %}Dashboard{% endblock %}</h2>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" @click.outside="open = false" class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                {% if unread_notifications_count > 0 %}
+                                <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ unread_notifications_count }}</span>
+                                {% endif %}
+                            </button>
+                            <div x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-40">
+                                <div class="p-3 border-b border-gray-100 flex justify-between items-center">
+                                    <h3 class="font-semibold text-sm text-gray-800">Notifications</h3>
+                                    <a href="{% url 'notification_mark_all_read' %}" class="text-xs text-[#810B38] hover:underline">Mark all read</a>
+                                </div>
+                                <div class="max-h-80 overflow-y-auto">
+                                    {% for n in unread_notifications %}
+                                    <a href="{{ n.link|default:'#' }}" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-50">
+                                        <p class="text-sm font-medium text-gray-800">{{ n.title }}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">{{ n.message|truncatewords:10 }}</p>
+                                        <p class="text-xs text-gray-400 mt-1">{{ n.created_at|timesince }} ago</p>
+                                    </a>
+                                    {% empty %}
+                                    <div class="px-4 py-8 text-center text-sm text-gray-400">No new notifications</div>
+                                    {% endfor %}
+                                </div>
+                                <a href="{% url 'notification_list' %}" class="block p-3 text-center text-sm text-[#810B38] hover:bg-gray-50 font-medium">View all notifications</a>
+                            </div>
+                        </div>
+
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" @click.outside="open = false" class="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100">
+                                <div class="w-8 h-8 bg-[#810B38] rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {{ user.first_name|first|default:user.username|first|upper }}
+                                </div>
+                                <span class="hidden md:block text-sm font-medium text-gray-700">{{ user.get_full_name|default:user.username }}</span>
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-40">
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <p class="text-sm font-medium text-gray-800">{{ user.get_full_name|default:user.username }}</p>
+                                    <p class="text-xs text-gray-500">{{ user.profile.get_role_display }}</p>
+                                </div>
+                                <div class="py-1">
+                                    <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
+                                    <a href="{% url 'profile_edit' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Settings</a>
+                                    {% if user.is_superuser %}
+                                    <a href="/admin/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Admin Panel</a>
+                                    {% endif %}
+                                </div>
+                                <div class="border-t border-gray-100 py-1">
+                                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Logout</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 md:p-6">
+                <div class="print-only print-header">
+                    <h1>Trucking Tracker — {% block print_title %}Dashboard{% endblock %}</h1>
+                    <p class="print-meta">{% if start %}Period: {{ start|date:"M d, Y" }} — {{ end|date:"M d, Y" }} &nbsp;|&nbsp; {% endif %}Generated: {% now "M d, Y h:i A" %}</p>
+                    <hr>
+                </div>
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <div x-show="sidebarOpen" x-cloak
+             @click="sidebarOpen = false"
+             class="fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+    </div>
+
+    <div x-data="modal"
+         x-show="open"
+         x-cloak
+         @keydown.escape.window="close"
+         class="fixed inset-0 z-50 overflow-y-auto">
+        <div x-show="open"
+             x-transition.opacity.duration.300
+             @click="close"
+             class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+             class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" @click.stop>
+                <div id="modal-content"></div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="min-h-screen flex items-center justify-center bg-[#F1E2D1]">
+        {% block auth_content %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('modal', () => ({
+                open: false,
+                init() {
+                    this.$watch('open', (val) => {
+                        document.body.style.overflow = val ? 'hidden' : '';
+                    });
+                },
+                close() {
+                    this.open = false;
+                    this.$nextTick(() => {
+                        const container = document.getElementById('modal-content');
+                        if (container) container.innerHTML = '';
+                    });
+                }
+            }));
+        });
+
+        document.body.addEventListener('htmx:beforeRequest', function(evt) {
+            var target = evt.detail.target;
+            if (target) {
+                var indicator = target.querySelector('.htmx-indicator');
+                if (indicator) indicator.style.display = 'inline-block';
+            }
+        });
+        document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+            if (evt.detail.target.id === 'modal-content') {
+                var modal = Alpine.$data(document.querySelector('[x-data="modal"]'));
+                if (modal) modal.open = true;
+            }
+        });
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            var target = evt.detail.target;
+            if (target) {
+                var indicator = target.querySelector('.htmx-indicator');
+                if (indicator) indicator.style.display = 'none';
+            }
+            if (evt.detail.xhr.getResponseHeader('HX-Trigger') === 'closeModal') {
+                var modal = Alpine.$data(document.querySelector('[x-data="modal"]'));
+                if (modal) modal.close();
+            }
+        });
+        function closeModalHandler() {
+            var el = document.querySelector('[x-data="modal"]');
+            if (el && Alpine.$data) {
+                var modal = Alpine.$data(el);
+                if (modal && typeof modal.close === 'function') {
+                    modal.close();
+                }
+            }
+        }
+        document.body.addEventListener('closeModal', closeModalHandler);
+        window.addEventListener('closeModal', closeModalHandler);
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            console.error('HTMX Error:', evt.detail);
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

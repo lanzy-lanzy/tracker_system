@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{% if record %}Edit Maintenance{% else %}Add Maintenance{% endif %} - Trucking Tracker{% endblock %}
+
+{% block page_title %}{% if record %}Edit Maintenance{% else %}Add Maintenance{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center space-x-3 mb-6">
+        <a href="{% url 'maintenance_list' %}" class="text-gray-500 hover:text-[#810B38]">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <h1 class="text-2xl font-bold text-[#541A1A]">{% if record %}Edit Maintenance{% else %}Add Maintenance{% endif %}</h1>
+    </div>
+
+    <div class="card p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label" for="truck">Truck</label>
+                    <select id="truck" name="truck" required class="form-input">
+                        <option value="">Select Truck</option>
+                        {% for t in trucks %}
+                        <option value="{{ t.pk }}" {% if record and record.truck_id == t.pk %}selected{% endif %}>{{ t.plate_number }} - {{ t.get_truck_type_display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="maintenance_type">Maintenance Type</label>
+                    <select id="maintenance_type" name="maintenance_type" required class="form-input">
+                        <option value="">Select Type</option>
+                        <option value="routine" {% if record and record.maintenance_type == 'routine' %}selected{% endif %}>Routine Check</option>
+                        <option value="oil_change" {% if record and record.maintenance_type == 'oil_change' %}selected{% endif %}>Oil Change</option>
+                        <option value="tire" {% if record and record.maintenance_type == 'tire' %}selected{% endif %}>Tire Replacement</option>
+                        <option value="brake" {% if record and record.maintenance_type == 'brake' %}selected{% endif %}>Brake Service</option>
+                        <option value="engine" {% if record and record.maintenance_type == 'engine' %}selected{% endif %}>Engine Repair</option>
+                        <option value="transmission" {% if record and record.maintenance_type == 'transmission' %}selected{% endif %}>Transmission Service</option>
+                        <option value="electrical" {% if record and record.maintenance_type == 'electrical' %}selected{% endif %}>Electrical Repair</option>
+                        <option value="body" {% if record and record.maintenance_type == 'body' %}selected{% endif %}>Body Repair</option>
+                        <option value="other" {% if record and record.maintenance_type == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" name="description" rows="3" required class="form-input">{{ record.description|default:"" }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label" for="service_date">Service Date</label>
+                    <input id="service_date" type="date" name="service_date"
+                           value="{% if record %}{{ record.service_date|date:'Y-m-d' }}{% endif %}" required class="form-input">
+                </div>
+                <div>
+                    <label class="form-label" for="next_service_date">Next Service Date</label>
+                    <input id="next_service_date" type="date" name="next_service_date"
+                           value="{% if record %}{{ record.next_service_date|date:'Y-m-d' }}{% endif %}" class="form-input">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label" for="cost">Cost ($)</label>
+                    <input id="cost" type="number" step="0.01" name="cost" value="{{ record.cost|default:"" }}" class="form-input">
+                </div>
+                <div>
+                    <label class="form-label" for="service_provider">Service Provider</label>
+                    <input id="service_provider" type="text" name="service_provider" value="{{ record.service_provider|default:"" }}" class="form-input">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label" for="status">Status</label>
+                    <select id="status" name="status" class="form-input">
+                        <option value="scheduled" {% if record and record.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                        <option value="ongoing" {% if record and record.status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                        <option value="completed" {% if record and record.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if record and record.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="remarks">Remarks</label>
+                    <textarea id="remarks" name="remarks" rows="3" class="form-input">{{ record.remarks|default:"" }}</textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-4 border-t border-gray-100">
+                <button type="submit" class="btn-primary">
+                    {% if record %}Update Record{% else %}Add Record{% endif %}
+                </button>
+                <a href="{% url 'maintenance_list' %}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

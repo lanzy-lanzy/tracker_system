@@ -1,0 +1,19 @@
+{% if trips %}
+{% for trip in trips %}
+{% include "trips/partials/trip_row.html" with trip=trip %}
+{% endfor %}
+{% else %}
+<tr>
+    <td colspan="9" class="table-cell">
+        <div class="empty-state">
+            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <p class="text-gray-500">No trips found.</p>
+            <button hx-get="{% url 'trip_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+                    class="btn-primary inline-flex items-center space-x-1 mt-3">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Create your first trip</span>
+            </button>
+        </div>
+    </td>
+</tr>
+{% endif %}

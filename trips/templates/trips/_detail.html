@@ -1,0 +1,89 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-[#541A1A]">{{ trip.reference_number }}</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div>
+      <p class="form-label text-xs text-gray-500">Client</p>
+      <p class="text-sm font-medium text-gray-800">{{ trip.client.client_name }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Assigned Truck</p>
+      <p class="text-sm font-medium text-gray-800">{{ trip.assigned_truck.plate_number|default:"—" }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Assigned Driver</p>
+      <p class="text-sm font-medium text-gray-800">{{ trip.assigned_driver.full_name|default:"—" }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Status</p>
+      <p class="text-sm font-medium {% if trip.status == 'delivered' %}text-green-600{% elif trip.status == 'cancelled' %}text-red-600{% elif trip.status == 'in_transit' %}text-blue-600{% else %}text-yellow-600{% endif %}">{{ trip.get_status_display }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Scheduled Pickup</p>
+      <p class="text-sm text-gray-800">{{ trip.scheduled_pickup|date:"M d, Y H:i" }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Scheduled Delivery</p>
+      <p class="text-sm text-gray-800">{{ trip.scheduled_delivery|date:"M d, Y H:i" }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Cargo Weight</p>
+      <p class="text-sm text-gray-800">{{ trip.cargo_weight|default:"—" }}{% if trip.cargo_weight %} kg{% endif %}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Cargo Quantity</p>
+      <p class="text-sm text-gray-800">{{ trip.cargo_quantity|default:"—" }}</p>
+    </div>
+    <div class="col-span-2">
+      <p class="form-label text-xs text-gray-500">Pickup Location</p>
+      <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ trip.pickup_location }}</p>
+    </div>
+    <div class="col-span-2">
+      <p class="form-label text-xs text-gray-500">Dropoff Location</p>
+      <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ trip.dropoff_location }}</p>
+    </div>
+    {% if trip.cargo_description %}
+    <div class="col-span-2">
+      <p class="form-label text-xs text-gray-500">Cargo Description</p>
+      <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ trip.cargo_description }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="border-t border-gray-200 pt-4">
+    <h4 class="text-sm font-semibold text-gray-700 mb-2">Cargo Items</h4>
+    {% if cargo_items %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="table-header">
+          <tr>
+            <th>Type</th>
+            <th>Weight</th>
+            <th>Qty</th>
+            <th>Condition Before</th>
+            <th>Condition After</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cargo_items %}
+          <tr class="hover:bg-gray-50 transition">
+            <td class="table-cell">{{ item.cargo_type }}</td>
+            <td class="table-cell">{{ item.weight|default:"—" }}{% if item.weight %} kg{% endif %}</td>
+            <td class="table-cell">{{ item.quantity|default:"—" }}</td>
+            <td class="table-cell">{{ item.get_condition_before_display|default:"—" }}</td>
+            <td class="table-cell">{{ item.get_condition_after_display|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="table-cell text-center text-gray-400 py-4">No cargo items.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-400">No cargo items for this trip.</p>
+    {% endif %}
+  </div>
+</div>

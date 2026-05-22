@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{% if expense %}Edit Expense{% else %}Add Expense{% endif %}{% endblock %}
+{% block page_title %}{% if expense %}Edit Expense{% else %}Add Expense{% endif %}{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="form-label" for="id_trip">Trip</label>
+                <select name="trip" id="id_trip" class="form-input">
+                    <option value="">— Select Trip —</option>
+                    {% for trip in trips %}
+                    <option value="{{ trip.pk }}" {% if expense and expense.trip_id == trip.pk %}selected{% endif %}>{{ trip.reference }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="id_truck">Truck</label>
+                <select name="truck" id="id_truck" class="form-input">
+                    <option value="">— Select Truck —</option>
+                    {% for truck in trucks %}
+                    <option value="{{ truck.pk }}" {% if expense and expense.truck_id == truck.pk %}selected{% endif %}>{{ truck.plate_number }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="id_expense_type">Expense Type</label>
+                <select name="expense_type" id="id_expense_type" class="form-input" required>
+                    <option value="">— Select Type —</option>
+                    <option value="fuel" {% if expense and expense.expense_type == 'fuel' %}selected{% endif %}>Fuel</option>
+                    <option value="toll" {% if expense and expense.expense_type == 'toll' %}selected{% endif %}>Toll</option>
+                    <option value="repair" {% if expense and expense.expense_type == 'repair' %}selected{% endif %}>Repair</option>
+                    <option value="allowance" {% if expense and expense.expense_type == 'allowance' %}selected{% endif %}>Allowance</option>
+                    <option value="parking" {% if expense and expense.expense_type == 'parking' %}selected{% endif %}>Parking</option>
+                    <option value="other" {% if expense and expense.expense_type == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="id_amount">Amount</label>
+                <input type="number" name="amount" id="id_amount" step="0.01" min="0" class="form-input" required value="{{ expense.amount|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="id_date">Date</label>
+                <input type="date" name="date" id="id_date" class="form-input" value="{{ expense.date|date:'Y-m-d'|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="id_receipt">Receipt</label>
+                <input type="file" name="receipt" id="id_receipt" class="form-input" accept="image/*,.pdf">
+                {% if expense and expense.receipt %}
+                <p class="text-xs text-gray-500 mt-1">Current: <a href="{{ expense.receipt.url }}" target="_blank" class="text-[#810B38] hover:underline">View Receipt</a></p>
+                {% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="id_notes">Notes</label>
+                <textarea name="notes" id="id_notes" rows="3" class="form-input">{{ expense.notes|default:'' }}</textarea>
+            </div>
+            <div class="flex items-center space-x-3 pt-2">
+                <button type="submit" class="btn-primary">{% if expense %}Update{% else %}Create{% endif %} Expense</button>
+                <a href="{% url 'expense_list' %}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

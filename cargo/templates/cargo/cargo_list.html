@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Cargo - Trucking Tracker{% endblock %}
+
+{% block page_title %}Cargo{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-[#541A1A]">Cargo Records</h1>
+    <button hx-get="{% url 'cargo_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+            class="btn-primary inline-flex items-center space-x-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <span>Add Cargo</span>
+    </button>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="table-header">
+                <tr>
+                    <th>Trip Ref</th>
+                    <th>Cargo Type</th>
+                    <th>Weight</th>
+                    <th>Quantity</th>
+                    <th>Condition Before</th>
+                    <th>Condition After</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if cargo_items %}
+                {% for item in cargo_items %}
+                <tr class="hover:bg-gray-50">
+                    <td class="table-cell font-medium">
+                        <a href="{% url 'trip_detail' pk=item.trip.pk %}" class="text-[#810B38] hover:underline">{{ item.trip.reference_number }}</a>
+                    </td>
+                    <td class="table-cell">{{ item.cargo_type }}</td>
+                    <td class="table-cell">{{ item.weight|default:"—" }}{% if item.weight %} kg{% endif %}</td>
+                    <td class="table-cell">{{ item.quantity|default:"—" }}</td>
+                    <td class="table-cell">
+                        {% if item.condition_before %}
+                        <span class="badge text-white" style="background-color:var(--info)">{{ item.get_condition_before_display }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="table-cell">
+                        {% if item.condition_after %}
+                        <span class="badge text-white" style="background-color:var(--info)">{{ item.get_condition_after_display }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="table-cell">
+                        <div class="flex items-center space-x-2">
+                            <button hx-get="{% url 'cargo_modal_edit' pk=item.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                    class="text-amber-600 hover:text-amber-800 text-sm font-medium">Edit</button>
+                            <button hx-get="{% url 'cargo_modal_delete' pk=item.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                    class="text-red-600 hover:text-red-800 text-sm font-medium ml-2">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="7" class="table-cell">
+                        <div class="empty-state">
+                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            <p class="text-gray-500">No cargo records found.</p>
+                            <button hx-get="{% url 'cargo_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                    class="btn-primary inline-flex items-center space-x-1 mt-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span>Add cargo</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

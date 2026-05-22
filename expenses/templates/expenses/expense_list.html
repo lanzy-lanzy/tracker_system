@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Expenses{% endblock %}
+{% block page_title %}Expenses{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    {% if total is not None %}
+    <div class="stat-card">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#541A1A] font-medium">Total Expenses</p>
+                <p class="text-2xl font-bold text-[#810B38]">₱{{ total|floatformat:2|intcomma }}</p>
+            </div>
+            <svg class="w-12 h-12 text-[#DCC3AA]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card p-4">
+        <form method="get" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="form-label" for="expense_type">Expense Type</label>
+                <select name="expense_type" id="expense_type" class="form-input">
+                    <option value="">All Types</option>
+                    <option value="fuel" {% if request.GET.expense_type == 'fuel' %}selected{% endif %}>Fuel</option>
+                    <option value="toll" {% if request.GET.expense_type == 'toll' %}selected{% endif %}>Toll</option>
+                    <option value="repair" {% if request.GET.expense_type == 'repair' %}selected{% endif %}>Repair</option>
+                    <option value="allowance" {% if request.GET.expense_type == 'allowance' %}selected{% endif %}>Allowance</option>
+                    <option value="parking" {% if request.GET.expense_type == 'parking' %}selected{% endif %}>Parking</option>
+                    <option value="other" {% if request.GET.expense_type == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Filter</button>
+            <a href="{% url 'expense_list' %}" class="btn-secondary">Clear</a>
+            <button hx-get="{% url 'expense_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+                    class="btn-primary ml-auto">Add Expense</button>
+        </form>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="table-header">
+                    <tr>
+                        <th>Trip Ref</th>
+                        <th>Truck</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Receipt</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="table-cell">{{ expense.trip.reference|default:"-" }}</td>
+                        <td class="table-cell">{{ expense.truck.plate_number|default:"-" }}</td>
+                        <td class="table-cell">
+                            <span class="badge
+                                {% if expense.expense_type == 'fuel' %}bg-orange-100 text-orange-800
+                                {% elif expense.expense_type == 'toll' %}bg-blue-100 text-blue-800
+                                {% elif expense.expense_type == 'repair' %}bg-red-100 text-red-800
+                                {% elif expense.expense_type == 'allowance' %}bg-green-100 text-green-800
+                                {% elif expense.expense_type == 'parking' %}bg-gray-100 text-gray-800
+                                {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                {{ expense.get_expense_type_display }}
+                            </span>
+                        </td>
+                        <td class="table-cell font-medium">₱{{ expense.amount|floatformat:2|intcomma }}</td>
+                        <td class="table-cell">{{ expense.date|date:"M d, Y" }}</td>
+                        <td class="table-cell">
+                            {% if expense.receipt %}
+                            <a href="{{ expense.receipt.url }}" target="_blank" class="text-[#810B38] hover:underline text-sm">View</a>
+                            {% else %}
+                            <span class="text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="table-cell text-gray-500 max-w-[200px] truncate">{{ expense.notes|default:"—" }}</td>
+                        <td class="table-cell">
+                            <div class="flex items-center space-x-2">
+                                <button hx-get="{% url 'expense_modal_edit' pk=expense.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                        class="text-amber-600 hover:text-amber-800 text-sm font-medium">Edit</button>
+                                <button hx-get="{% url 'expense_modal_delete' pk=expense.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                        class="text-red-600 hover:text-red-800 text-sm font-medium ml-2">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="empty-state">No expenses found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

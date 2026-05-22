@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Payment Report{% endblock %}
+{% block page_title %}Payment Report{% endblock %}
+{% block print_title %}Payment Report{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="card p-4">
+        <form method="get" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="form-label" for="start_date">Start Date</label>
+                <input type="date" name="start_date" id="start_date" class="form-input" value="{{ request.GET.start_date|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="end_date">End Date</label>
+                <input type="date" name="end_date" id="end_date" class="form-input" value="{{ request.GET.end_date|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="status">Status</label>
+                <select name="status" id="status" class="form-input">
+                    <option value="">All Statuses</option>
+                    <option value="unpaid" {% if request.GET.status == 'unpaid' %}selected{% endif %}>Unpaid</option>
+                    <option value="partial" {% if request.GET.status == 'partial' %}selected{% endif %}>Partial</option>
+                    <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>Paid</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Generate Report</button>
+            <a href="{% url 'payment_report' %}" class="btn-secondary">Reset</a>
+            <button onclick="window.print()" class="btn-secondary ml-auto">Print</button>
+            <a href="{% url 'payment_pdf' %}{% if request.GET|length > 0 %}?{{ request.GET.urlencode }}{% endif %}" class="btn-secondary">PDF</a>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="stat-card">
+            <p class="text-sm text-[#541A1A] font-medium">Total Collected</p>
+            <p class="text-2xl font-bold text-green-600">₱{{ total_collected|default:0|floatformat:2|intcomma }}</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-sm text-[#541A1A] font-medium">Total Due</p>
+            <p class="text-2xl font-bold text-red-600">₱{{ total_due|default:0|floatformat:2|intcomma }}</p>
+        </div>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="table-header">
+                    <tr>
+                        <th>Trip Ref</th>
+                        <th>Client</th>
+                        <th>Amount Due</th>
+                        <th>Amount Paid</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="table-cell">{{ payment.trip.reference_number }}</td>
+                        <td class="table-cell">{{ payment.client.client_name }}</td>
+                        <td class="table-cell">₱{{ payment.amount_due|floatformat:2|intcomma }}</td>
+                        <td class="table-cell">₱{{ payment.amount_paid|floatformat:2|intcomma }}</td>
+                        <td class="table-cell font-medium">₱{{ payment.balance|floatformat:2|intcomma }}</td>
+                        <td class="table-cell">
+                            <span class="badge
+                                {% if payment.payment_status == 'unpaid' %}bg-red-100 text-red-800
+                                {% elif payment.payment_status == 'partial' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ payment.get_payment_status_display }}
+                            </span>
+                        </td>
+                        <td class="table-cell">{{ payment.payment_date|date:"M d, Y" }}</td>
+                        <td class="table-cell">{{ payment.payment_method|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="empty-state">No payments found for the selected filters</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

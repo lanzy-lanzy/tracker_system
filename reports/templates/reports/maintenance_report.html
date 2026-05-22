@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Maintenance Report{% endblock %}
+{% block page_title %}Maintenance Report{% endblock %}
+{% block print_title %}Maintenance Report{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="card p-4">
+        <form method="get" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="form-label" for="start_date">Start Date</label>
+                <input type="date" name="start_date" id="start_date" class="form-input" value="{{ request.GET.start_date|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="end_date">End Date</label>
+                <input type="date" name="end_date" id="end_date" class="form-input" value="{{ request.GET.end_date|default:'' }}">
+            </div>
+            <button type="submit" class="btn-primary">Generate Report</button>
+            <a href="{% url 'maintenance_report' %}" class="btn-secondary">Reset</a>
+            <button onclick="window.print()" class="btn-secondary ml-auto">Print</button>
+            <a href="{% url 'maintenance_pdf' %}{% if request.GET|length > 0 %}?{{ request.GET.urlencode }}{% endif %}" class="btn-secondary">PDF</a>
+        </form>
+    </div>
+
+    <div class="stat-card">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#541A1A] font-medium">Total Maintenance Cost</p>
+                <p class="text-2xl font-bold text-[#810B38]">₱{{ total_cost|default:0|floatformat:2|intcomma }}</p>
+            </div>
+            <svg class="w-10 h-10 text-[#DCC3AA]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="table-header">
+                    <tr>
+                        <th>Truck</th>
+                        <th>Type</th>
+                        <th>Service Date</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in maintenance_records %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="table-cell font-medium">{{ record.truck.plate_number }}</td>
+                        <td class="table-cell">{{ record.get_maintenance_type_display }}</td>
+                        <td class="table-cell">{{ record.service_date|date:"M d, Y" }}</td>
+                        <td class="table-cell">₱{{ record.cost|floatformat:2|intcomma }}</td>
+                        <td class="table-cell">
+                            <span class="badge
+                                {% if record.status == 'completed' %}bg-green-100 text-green-800
+                                {% elif record.status == 'ongoing' %}bg-blue-100 text-blue-800
+                                {% elif record.status == 'scheduled' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ record.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty-state">No maintenance records found for the selected period</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

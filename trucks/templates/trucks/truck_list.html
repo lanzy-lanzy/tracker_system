@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Trucks - Trucking Tracker{% endblock %}
+
+{% block page_title %}Trucks{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center space-x-3">
+        <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" placeholder="Search trucks..." class="form-input pl-10 w-64">
+        </div>
+        <select class="form-input w-40">
+            <option value="">All Types</option>
+            <option value="flatbed">Flatbed</option>
+            <option value="box">Box Truck</option>
+            <option value="refrigerated">Refrigerated</option>
+            <option value="tanker">Tanker</option>
+            <option value="dump">Dump Truck</option>
+            <option value="container">Container</option>
+            <option value="other">Other</option>
+        </select>
+        <select class="form-input w-40">
+            <option value="">All Status</option>
+            <option value="available">Available</option>
+            <option value="assigned">Assigned</option>
+            <option value="on_trip">On Trip</option>
+            <option value="maintenance">Under Maintenance</option>
+            <option value="inactive">Inactive</option>
+        </select>
+    </div>
+    <button hx-get="{% url 'truck_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+            class="btn-primary flex items-center space-x-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <span>Add Truck</span>
+    </button>
+</div>
+
+<div class="card overflow-hidden">
+    <table class="w-full">
+        <thead class="table-header">
+            <tr>
+                <th>Plate Number</th>
+                <th>Unit Number</th>
+                <th>Type</th>
+                <th>Capacity (kg)</th>
+                <th>Status</th>
+                <th>Registration Expiry</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for truck in trucks %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="table-cell font-medium text-[#541A1A]">{{ truck.plate_number }}</td>
+                <td class="table-cell">{{ truck.unit_number|default:"—" }}</td>
+                <td class="table-cell">{{ truck.get_truck_type_display }}</td>
+                <td class="table-cell">{{ truck.capacity|floatformat:0|default:"—" }}</td>
+                <td class="table-cell">
+                    {% if truck.status == "available" %}
+                    <span class="badge bg-green-100 text-green-700">Available</span>
+                    {% elif truck.status == "assigned" %}
+                    <span class="badge bg-blue-100 text-blue-700">Assigned</span>
+                    {% elif truck.status == "on_trip" %}
+                    <span class="badge bg-orange-100 text-orange-700">On Trip</span>
+                    {% elif truck.status == "maintenance" %}
+                    <span class="badge bg-red-100 text-red-700">Under Maintenance</span>
+                    {% elif truck.status == "inactive" %}
+                    <span class="badge bg-gray-100 text-gray-600">Inactive</span>
+                    {% endif %}
+                </td>
+                <td class="table-cell">
+                    {% if truck.registration_expiry %}
+                    <span class="{% if truck.is_registration_expired %}text-red-600 font-medium{% endif %}">{{ truck.registration_expiry|date:"M d, Y" }}</span>
+                    {% else %}
+                    <span class="text-gray-400">—</span>
+                    {% endif %}
+                </td>
+                <td class="table-cell">
+                    <div class="flex items-center space-x-2">
+                        <button hx-get="{% url 'truck_modal_detail' pk=truck.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-[#810B38] hover:text-[#5C0828] text-sm font-medium">View</button>
+                        <button hx-get="{% url 'truck_modal_edit' pk=truck.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-amber-600 hover:text-amber-800 text-sm font-medium ml-3">Edit</button>
+                        <button hx-get="{% url 'truck_modal_delete' pk=truck.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-red-600 hover:text-red-800 text-sm font-medium ml-3">Delete</button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="table-cell">
+                    <div class="empty-state">
+                        <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p class="text-gray-500 font-medium">No trucks registered yet</p>
+                        <p class="text-gray-400 text-sm mt-1">Get started by adding your first truck.</p>
+                        <button hx-get="{% url 'truck_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="btn-primary inline-flex items-center space-x-2 mt-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <span>Add Truck</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

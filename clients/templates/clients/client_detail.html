@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ client.client_name }} - Trucking Tracker{% endblock %}
+
+{% block page_title %}{{ client.client_name }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Client Information</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="form-label text-xs text-gray-500">Client Name</p>
+                    <p class="text-sm font-medium text-gray-800">{{ client.client_name }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Company Name</p>
+                    <p class="text-sm font-medium text-gray-800">{{ client.company_name|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Contact Person</p>
+                    <p class="text-sm font-medium text-gray-800">{{ client.contact_person|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Contact Number</p>
+                    <p class="text-sm font-medium text-gray-800">{{ client.contact_number }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Email</p>
+                    <p class="text-sm font-medium text-gray-800">{{ client.email|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Client Since</p>
+                    <p class="text-sm font-medium text-gray-800">{{ client.created_at|date:"M d, Y" }}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="form-label text-xs text-gray-500">Address</p>
+                    <p class="text-sm text-gray-800">{{ client.address|default:"No address provided."|linebreaks }}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="form-label text-xs text-gray-500">Notes</p>
+                    <p class="text-sm text-gray-800">{{ client.notes|default:"No notes."|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Active Trips</h3>
+            {% if active_trips %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Reference</th>
+                            <th>Truck</th>
+                            <th>Driver</th>
+                            <th>Pickup</th>
+                            <th>Dropoff</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trip in active_trips %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="table-cell font-medium">{{ trip.reference_number }}</td>
+                            <td class="table-cell">{{ trip.assigned_truck.plate_number|default:"—" }}</td>
+                            <td class="table-cell">{{ trip.assigned_driver.full_name|default:"—" }}</td>
+                            <td class="table-cell">{{ trip.pickup_location|truncatewords:5 }}</td>
+                            <td class="table-cell">{{ trip.dropoff_location|truncatewords:5 }}</td>
+                            <td class="table-cell">
+                                {% if trip.status == "delivered" %}
+                                <span class="badge bg-green-100 text-green-700">Delivered</span>
+                                {% elif trip.status == "in_transit" %}
+                                <span class="badge bg-blue-100 text-blue-700">In Transit</span>
+                                {% elif trip.status == "pending" %}
+                                <span class="badge bg-yellow-100 text-yellow-700">Pending</span>
+                                {% elif trip.status == "scheduled" %}
+                                <span class="badge bg-gray-100 text-gray-600">Scheduled</span>
+                                {% elif trip.status == "loading" %}
+                                <span class="badge bg-orange-100 text-orange-700">Loading</span>
+                                {% elif trip.status == "cancelled" %}
+                                <span class="badge bg-red-100 text-red-700">Cancelled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="table-cell">
+                                <div class="empty-state py-8">
+                                    <p class="text-gray-400">No active trips.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state py-8">
+                <p class="text-gray-400">No active trips.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Payment History</h3>
+            {% if payment_history %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Trip</th>
+                            <th>Amount Due</th>
+                            <th>Amount Paid</th>
+                            <th>Balance</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payment_history %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="table-cell font-medium">{{ payment.trip.reference_number }}</td>
+                            <td class="table-cell">₱{{ payment.amount_due|floatformat:2|intcomma }}</td>
+                            <td class="table-cell">₱{{ payment.amount_paid|floatformat:2|intcomma }}</td>
+                            <td class="table-cell font-medium {% if payment.balance > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                                ₱{{ payment.balance|floatformat:2|intcomma }}
+                            </td>
+                            <td class="table-cell">{{ payment.payment_date|date:"M d, Y"|default:"—" }}</td>
+                            <td class="table-cell">
+                                {% if payment.payment_status == "paid" %}
+                                <span class="badge bg-green-100 text-green-700">Paid</span>
+                                {% elif payment.payment_status == "partial" %}
+                                <span class="badge bg-yellow-100 text-yellow-700">Partial</span>
+                                {% elif payment.payment_status == "unpaid" %}
+                                <span class="badge bg-red-100 text-red-700">Unpaid</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="table-cell">
+                                <div class="empty-state py-8">
+                                    <p class="text-gray-400">No payment history found.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state py-8">
+                <p class="text-gray-400">No payment history found.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Actions</h3>
+            <div class="space-y-3">
+                <a href="{% url 'client_edit' client.pk %}" class="btn-secondary w-full inline-flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Edit Client</span>
+                </a>
+                <a href="{% url 'client_delete' client.pk %}" class="btn-danger w-full inline-flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Delete Client</span>
+                </a>
+            </div>
+        </div>
+
+        {% if client.total_outstanding > 0 %}
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Outstanding Balance</h3>
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm font-medium text-red-700">Total Outstanding</p>
+                <p class="text-2xl font-bold text-red-600">₱{{ client.total_outstanding|floatformat:2|intcomma }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

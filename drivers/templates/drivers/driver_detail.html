@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}{{ driver.full_name }} - Trucking Tracker{% endblock %}
+
+{% block page_title %}{{ driver.full_name }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-[#541A1A]">Driver Information</h3>
+                {% if driver.employment_status == "active" %}
+                <span class="badge bg-green-100 text-green-700 text-sm px-3 py-1">Active</span>
+                {% elif driver.employment_status == "inactive" %}
+                <span class="badge bg-gray-100 text-gray-600 text-sm px-3 py-1">Inactive</span>
+                {% elif driver.employment_status == "suspended" %}
+                <span class="badge bg-orange-100 text-orange-700 text-sm px-3 py-1">Suspended</span>
+                {% elif driver.employment_status == "terminated" %}
+                <span class="badge bg-red-100 text-red-700 text-sm px-3 py-1">Terminated</span>
+                {% endif %}
+            </div>
+
+            {% if driver.is_license_expired %}
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
+                <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                <span class="text-sm font-medium text-red-700">License has expired ({{ driver.license_expiry|date:"M d, Y" }}). Please renew immediately.</span>
+            </div>
+            {% elif driver.days_until_license_expiry <= 30 %}
+            <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center space-x-2">
+                <svg class="w-5 h-5 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                <span class="text-sm font-medium text-yellow-700">License expires in {{ driver.days_until_license_expiry }} days ({{ driver.license_expiry|date:"M d, Y" }}).</span>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="form-label text-xs text-gray-500">Full Name</p>
+                    <p class="text-sm font-medium text-gray-800">{{ driver.full_name }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Contact Number</p>
+                    <p class="text-sm font-medium text-gray-800">{{ driver.contact_number }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">License Number</p>
+                    <p class="text-sm font-medium text-gray-800 font-mono">{{ driver.license_number }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">License Expiry</p>
+                    <p class="text-sm font-medium {% if driver.is_license_expired %}text-red-600{% else %}text-gray-800{% endif %}">
+                        {{ driver.license_expiry|date:"M d, Y" }}
+                        {% if driver.is_license_expired %}(Expired){% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Assigned Truck</p>
+                    <p class="text-sm font-medium text-gray-800">{{ driver.assigned_truck.plate_number|default:"Not assigned" }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Employment Status</p>
+                    <p class="text-sm font-medium text-gray-800">{{ driver.get_employment_status_display }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Emergency Contact</p>
+                    <p class="text-sm font-medium text-gray-800">{{ driver.emergency_contact_name|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Emergency Contact #</p>
+                    <p class="text-sm font-medium text-gray-800">{{ driver.emergency_contact_number|default:"—" }}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="form-label text-xs text-gray-500">Address</p>
+                    <p class="text-sm text-gray-800">{{ driver.address|default:"No address provided."|linebreaks }}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="form-label text-xs text-gray-500">Remarks</p>
+                    <p class="text-sm text-gray-800">{{ driver.remarks|default:"No remarks."|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Trip History</h3>
+            {% if trip_history %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Reference</th>
+                            <th>Client</th>
+                            <th>Pickup</th>
+                            <th>Dropoff</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trip in trip_history %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="table-cell font-medium">{{ trip.reference_number }}</td>
+                            <td class="table-cell">{{ trip.client.client_name }}</td>
+                            <td class="table-cell">{{ trip.pickup_location|truncatewords:5 }}</td>
+                            <td class="table-cell">{{ trip.dropoff_location|truncatewords:5 }}</td>
+                            <td class="table-cell">{{ trip.scheduled_pickup|date:"M d, Y" }}</td>
+                            <td class="table-cell">
+                                {% if trip.status == "delivered" %}
+                                <span class="badge bg-green-100 text-green-700">Delivered</span>
+                                {% elif trip.status == "in_transit" %}
+                                <span class="badge bg-blue-100 text-blue-700">In Transit</span>
+                                {% elif trip.status == "pending" %}
+                                <span class="badge bg-yellow-100 text-yellow-700">Pending</span>
+                                {% elif trip.status == "scheduled" %}
+                                <span class="badge bg-gray-100 text-gray-600">Scheduled</span>
+                                {% elif trip.status == "loading" %}
+                                <span class="badge bg-orange-100 text-orange-700">Loading</span>
+                                {% elif trip.status == "cancelled" %}
+                                <span class="badge bg-red-100 text-red-700">Cancelled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="table-cell">
+                                <div class="empty-state py-8">
+                                    <p class="text-gray-400">No trip history found.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state py-8">
+                <p class="text-gray-400">No trip history found.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Actions</h3>
+            <div class="space-y-3">
+                <a href="{% url 'driver_edit' driver.pk %}" class="btn-secondary w-full inline-flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Edit Driver</span>
+                </a>
+                <a href="{% url 'driver_delete' driver.pk %}" class="btn-danger w-full inline-flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Delete Driver</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

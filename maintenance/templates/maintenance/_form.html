@@ -1,0 +1,77 @@
+{% load humanize %}
+<div class="p-6" x-data="{ submitting: false }">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-[#541A1A]">{% if form_record %}Edit{% else %}Add New{% endif %} Maintenance</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+  {% if error %}<div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{{ error }}</div>{% endif %}
+  <form hx-post="{{ action_url }}" hx-target="#modal-content" hx-swap="innerHTML" @submit="submitting = true">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label" for="truck">Truck</label>
+        <select id="truck" name="truck" required class="form-input">
+          <option value="">Select Truck</option>
+          {% for t in trucks %}
+          <option value="{{ t.pk }}" {% if form_record and form_record.truck_id == t.pk %}selected{% endif %}>{{ t.plate_number }} - {{ t.get_truck_type_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="maintenance_type">Maintenance Type</label>
+        <select id="maintenance_type" name="maintenance_type" required class="form-input">
+          <option value="">Select Type</option>
+          <option value="routine" {% if form_record and form_record.maintenance_type == 'routine' %}selected{% endif %}>Routine Check</option>
+          <option value="oil_change" {% if form_record and form_record.maintenance_type == 'oil_change' %}selected{% endif %}>Oil Change</option>
+          <option value="tire" {% if form_record and form_record.maintenance_type == 'tire' %}selected{% endif %}>Tire Replacement</option>
+          <option value="brake" {% if form_record and form_record.maintenance_type == 'brake' %}selected{% endif %}>Brake Service</option>
+          <option value="engine" {% if form_record and form_record.maintenance_type == 'engine' %}selected{% endif %}>Engine Repair</option>
+          <option value="transmission" {% if form_record and form_record.maintenance_type == 'transmission' %}selected{% endif %}>Transmission Service</option>
+          <option value="electrical" {% if form_record and form_record.maintenance_type == 'electrical' %}selected{% endif %}>Electrical Repair</option>
+          <option value="body" {% if form_record and form_record.maintenance_type == 'body' %}selected{% endif %}>Body Repair</option>
+          <option value="other" {% if form_record and form_record.maintenance_type == 'other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="form-label" for="description">Description</label>
+        <textarea id="description" name="description" rows="3" required class="form-input">{{ form_record.description|default:'' }}</textarea>
+      </div>
+      <div>
+        <label class="form-label" for="service_date">Service Date</label>
+        <input id="service_date" type="date" name="service_date" value="{% if form_record %}{{ form_record.service_date|date:'Y-m-d' }}{% endif %}" required class="form-input">
+      </div>
+      <div>
+        <label class="form-label" for="next_service_date">Next Service Date</label>
+        <input id="next_service_date" type="date" name="next_service_date" value="{% if form_record %}{{ form_record.next_service_date|date:'Y-m-d' }}{% endif %}" class="form-input">
+      </div>
+      <div>
+        <label class="form-label" for="cost">Cost ($)</label>
+        <input id="cost" type="number" step="0.01" name="cost" value="{{ form_record.cost|default:'' }}" class="form-input">
+      </div>
+      <div>
+        <label class="form-label" for="service_provider">Service Provider</label>
+        <input id="service_provider" type="text" name="service_provider" value="{{ form_record.service_provider|default:'' }}" class="form-input">
+      </div>
+      <div>
+        <label class="form-label" for="status">Status</label>
+        <select id="status" name="status" class="form-input">
+          <option value="scheduled" {% if form_record and form_record.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+          <option value="ongoing" {% if form_record and form_record.status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+          <option value="completed" {% if form_record and form_record.status == 'completed' %}selected{% endif %}>Completed</option>
+          <option value="cancelled" {% if form_record and form_record.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="remarks">Remarks</label>
+        <textarea id="remarks" name="remarks" rows="3" class="form-input">{{ form_record.remarks|default:'' }}</textarea>
+      </div>
+    </div>
+    <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+      <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Cancel</button>
+      <button type="submit" class="btn-primary" :disabled="submitting">
+        <span x-show="!submitting">Save</span>
+        <span x-show="submitting">Saving...</span>
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{% if client %}Edit{% else %}Add{% endif %} Client - Trucking Tracker{% endblock %}
+
+{% block page_title %}{% if client %}Edit Client{% else %}Add Client{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card p-6">
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label" for="client_name">Client Name</label>
+                    <input type="text" id="client_name" name="client_name" required
+                           value="{{ client.client_name|default:'' }}"
+                           class="form-input" placeholder="e.g. Juan Dela Cruz">
+                </div>
+                <div>
+                    <label class="form-label" for="company_name">Company Name</label>
+                    <input type="text" id="company_name" name="company_name"
+                           value="{{ client.company_name|default:'' }}"
+                           class="form-input" placeholder="e.g. ABC Corporation">
+                </div>
+                <div>
+                    <label class="form-label" for="contact_person">Contact Person</label>
+                    <input type="text" id="contact_person" name="contact_person"
+                           value="{{ client.contact_person|default:'' }}"
+                           class="form-input" placeholder="e.g. Maria Santos">
+                </div>
+                <div>
+                    <label class="form-label" for="contact_number">Contact Number</label>
+                    <input type="text" id="contact_number" name="contact_number" required
+                           value="{{ client.contact_number|default:'' }}"
+                           class="form-input" placeholder="e.g. 09171234567">
+                </div>
+                <div>
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" name="email"
+                           value="{{ client.email|default:'' }}"
+                           class="form-input" placeholder="e.g. client@example.com">
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="address">Address</label>
+                <textarea id="address" name="address" rows="2" class="form-input" placeholder="Complete address...">{{ client.address|default:'' }}</textarea>
+            </div>
+            <div>
+                <label class="form-label" for="notes">Notes</label>
+                <textarea id="notes" name="notes" rows="3" class="form-input" placeholder="Additional notes...">{{ client.notes|default:'' }}</textarea>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100">
+                <a href="{% url 'client_list' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary">
+                    {% if client %}Update Client{% else %}Add Client{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

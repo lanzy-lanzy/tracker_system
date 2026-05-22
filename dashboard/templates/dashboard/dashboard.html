@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}Dashboard - Trucking Tracker{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-[#810B38]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-[#810B38]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">{{ total_trucks }}</p>
+                <p class="text-xs text-gray-500">Total Trucks</p>
+            </div>
+        </div>
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">{{ available_trucks }}</p>
+                <p class="text-xs text-gray-500">Available Trucks</p>
+            </div>
+        </div>
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">{{ maintenance_trucks }}</p>
+                <p class="text-xs text-gray-500">Under Maintenance</p>
+            </div>
+        </div>
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">{{ total_drivers }}</p>
+                <p class="text-xs text-gray-500">Total Drivers</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">{{ active_trips }}</p>
+                <p class="text-xs text-gray-500">Active Trips</p>
+            </div>
+        </div>
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">{{ pending_trips }}</p>
+                <p class="text-xs text-gray-500">Pending Trips</p>
+            </div>
+        </div>
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">{{ completed_trips }}</p>
+                <p class="text-xs text-gray-500">Completed</p>
+            </div>
+        </div>
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">{{ cancelled_trips }}</p>
+                <p class="text-xs text-gray-500">Cancelled</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">₱{{ monthly_revenue|floatformat:2|intcomma }}</p>
+                <p class="text-xs text-gray-500">Monthly Revenue</p>
+            </div>
+        </div>
+        <div class="stat-card flex items-center space-x-4">
+            <div class="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-rose-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-[#541A1A]">₱{{ monthly_expenses|floatformat:2|intcomma }}</p>
+                <p class="text-xs text-gray-500">Monthly Expenses</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-[#541A1A]">Recent Trips</h3>
+                    <a href="{% url 'trip_list' %}" class="text-sm text-[#810B38] hover:underline font-medium">View All</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="table-header">
+                            <tr>
+                                <th>Reference</th>
+                                <th>Client</th>
+                                <th>Route</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trip in recent_trips %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="table-cell font-medium text-gray-900">{{ trip.reference_number }}</td>
+                                <td class="table-cell text-gray-600">{{ trip.client.client_name }}</td>
+                                <td class="table-cell text-gray-600 text-xs">{{ trip.pickup_location|truncatechars:20 }} &rarr; {{ trip.dropoff_location|truncatechars:20 }}</td>
+                                <td class="table-cell">
+                                    <span class="badge
+                                        {% if trip.status == 'delivered' %}bg-green-100 text-green-800
+                                        {% elif trip.status == 'in_transit' %}bg-blue-100 text-blue-800
+                                        {% elif trip.status == 'loading' %}bg-yellow-100 text-yellow-800
+                                        {% elif trip.status == 'scheduled' %}bg-indigo-100 text-indigo-800
+                                        {% elif trip.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ trip.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="table-cell text-gray-500 text-xs">{{ trip.scheduled_pickup|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="empty-state">No trips recorded yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card p-6" id="maintenance-alerts-widget" hx-get="{% url 'dashboard_maintenance_alerts' %}" hx-trigger="load" hx-swap="innerHTML">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-[#541A1A]">Maintenance Alerts</h3>
+                    <a href="{% url 'maintenance_list' %}" class="text-sm text-[#810B38] hover:underline font-medium">View All</a>
+                </div>
+                <div class="flex items-center justify-center py-8">
+                    <svg class="w-6 h-6 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span class="ml-2 text-sm text-gray-400">Loading alerts...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="card p-6" id="payment-summary-widget" hx-get="{% url 'dashboard_payment_summary' %}" hx-trigger="load" hx-swap="innerHTML">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-[#541A1A]">Payment Summary</h3>
+                    <a href="{% url 'payment_list' %}" class="text-sm text-[#810B38] hover:underline font-medium">View All</a>
+                </div>
+                <div class="flex items-center justify-center py-8">
+                    <svg class="w-6 h-6 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span class="ml-2 text-sm text-gray-400">Loading payments...</span>
+                </div>
+            </div>
+
+            <div class="card p-6" id="trip-activity-widget" hx-get="{% url 'dashboard_trip_activity' %}" hx-trigger="load" hx-swap="innerHTML">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-[#541A1A]">Recent Activity</h3>
+                </div>
+                <div class="flex items-center justify-center py-8">
+                    <svg class="w-6 h-6 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span class="ml-2 text-sm text-gray-400">Loading activity...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

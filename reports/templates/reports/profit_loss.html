@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Profit & Loss{% endblock %}
+{% block page_title %}Profit & Loss Report{% endblock %}
+{% block print_title %}Profit & Loss Report{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="card p-4">
+        <form method="get" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="form-label" for="start_date">Start Date</label>
+                <input type="date" name="start_date" id="start_date" class="form-input" value="{{ request.GET.start_date|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="end_date">End Date</label>
+                <input type="date" name="end_date" id="end_date" class="form-input" value="{{ request.GET.end_date|default:'' }}">
+            </div>
+            <button type="submit" class="btn-primary">Generate Report</button>
+            <a href="{% url 'profit_loss_report' %}" class="btn-secondary">Reset</a>
+            <button onclick="window.print()" class="btn-secondary ml-auto">Print</button>
+            <a href="{% url 'profit_loss_pdf' %}{% if request.GET|length > 0 %}?{{ request.GET.urlencode }}{% endif %}" class="btn-secondary">PDF</a>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="stat-card border-l-green-600">
+            <p class="text-sm text-[#541A1A] font-medium">Total Revenue</p>
+                <p class="text-3xl font-bold text-green-600">₱{{ revenue|default:0|floatformat:2|intcomma }}</p>
+        </div>
+        <div class="stat-card border-l-red-600">
+            <p class="text-sm text-[#541A1A] font-medium">Total Expenses</p>
+            <p class="text-3xl font-bold text-red-600">₱{{ expenses|default:0|floatformat:2|intcomma }}</p>
+        </div>
+        <div class="stat-card {% if profit >= 0 %}border-l-green-600{% else %}border-l-red-600{% endif %}">
+            <p class="text-sm text-[#541A1A] font-medium">Net {% if profit >= 0 %}Profit{% else %}Loss{% endif %}</p>
+            <p class="text-3xl font-bold {% if profit >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                ₱{{ profit|default:0|floatformat:2|intcomma }}
+            </p>
+        </div>
+    </div>
+
+    <div class="card p-6">
+        <h3 class="font-semibold text-[#541A1A] mb-4">Breakdown</h3>
+        <div class="space-y-3">
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-gray-700">Revenue from Trips</span>
+                <span class="font-semibold text-green-600">₱{{ revenue|default:0|floatformat:2|intcomma }}</span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                <span class="text-gray-700">Expenses</span>
+                <span class="font-semibold text-red-600">-₱{{ expenses|default:0|floatformat:2|intcomma }}</span>
+            </div>
+            <div class="flex justify-between items-center py-2 text-lg font-bold">
+                <span class="text-[#541A1A]">Net {{ profit|default:0|floatformat:2|intcomma|cut:"-" }}</span>
+                <span class="{% if profit >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    ₱{{ profit|default:0|floatformat:2|intcomma }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

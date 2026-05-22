@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Clients - Trucking Tracker{% endblock %}
+
+{% block page_title %}Clients{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center space-x-3">
+        <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" placeholder="Search clients..." class="form-input pl-10 w-64">
+        </div>
+    </div>
+    <button hx-get="{% url 'client_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+            class="btn-primary flex items-center space-x-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <span>Add Client</span>
+    </button>
+</div>
+
+<div class="card overflow-hidden">
+    <table class="w-full">
+        <thead class="table-header">
+            <tr>
+                <th>Name</th>
+                <th>Contact Person</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="table-cell font-medium text-[#541A1A]">{{ client.client_name }}</td>
+                <td class="table-cell">{{ client.contact_person|default:"—" }}</td>
+                <td class="table-cell">{{ client.contact_number }}</td>
+                <td class="table-cell">{{ client.email|default:"—" }}</td>
+                <td class="table-cell">{{ client.company_name|default:"—" }}</td>
+                <td class="table-cell">
+                    <div class="flex items-center space-x-2">
+                        <button hx-get="{% url 'client_modal_detail' pk=client.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-[#810B38] hover:text-[#5C0828] text-sm font-medium">View</button>
+                        <button hx-get="{% url 'client_modal_edit' pk=client.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-gray-500 hover:text-gray-700 text-sm">Edit</button>
+                        <button hx-get="{% url 'client_modal_delete' pk=client.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="text-red-600 hover:underline text-sm ml-2">Delete</button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="table-cell">
+                    <div class="empty-state">
+                        <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <p class="text-gray-500 font-medium">No clients yet</p>
+                        <p class="text-gray-400 text-sm mt-1">Get started by adding your first client.</p>
+                        <button hx-get="{% url 'client_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                class="btn-primary inline-flex items-center space-x-2 mt-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <span>Add Client</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

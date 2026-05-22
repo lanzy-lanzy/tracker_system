@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{% if cargo %}Edit Cargo{% else %}Add Cargo{% endif %} - Trucking Tracker{% endblock %}
+
+{% block page_title %}{% if cargo %}Edit Cargo{% else %}Add Cargo{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center space-x-3 mb-6">
+        <a href="{% url 'cargo_list' %}" class="text-gray-500 hover:text-[#810B38]">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <h1 class="text-2xl font-bold text-[#541A1A]">{% if cargo %}Edit Cargo{% else %}Add Cargo{% endif %}</h1>
+    </div>
+
+    <div class="card p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="form-label" for="trip">Trip</label>
+                <select id="trip" name="trip" required class="form-input">
+                    <option value="">Select Trip</option>
+                    {% for t in trips %}
+                    <option value="{{ t.pk }}" {% if cargo and cargo.trip_id == t.pk %}selected{% endif %}>{{ t.reference_number }} - {{ t.client.client_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="cargo_type">Cargo Type</label>
+                <input id="cargo_type" type="text" name="cargo_type" value="{{ cargo.cargo_type|default:"" }}" required class="form-input" placeholder="e.g. Electronics, Furniture, Raw Materials">
+            </div>
+
+            <div>
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" name="description" rows="3" class="form-input">{{ cargo.description|default:"" }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label" for="weight">Weight (kg)</label>
+                    <input id="weight" type="number" step="0.01" name="weight" value="{{ cargo.weight|default:"" }}" class="form-input">
+                </div>
+                <div>
+                    <label class="form-label" for="quantity">Quantity</label>
+                    <input id="quantity" type="number" name="quantity" value="{{ cargo.quantity|default:"" }}" class="form-input">
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" for="special_handling">Special Handling Instructions</label>
+                <textarea id="special_handling" name="special_handling" rows="2" class="form-input">{{ cargo.special_handling|default:"" }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label" for="condition_before">Condition Before</label>
+                    <select id="condition_before" name="condition_before" class="form-input">
+                        <option value="">— Select —</option>
+                        <option value="excellent" {% if cargo and cargo.condition_before == 'excellent' %}selected{% endif %}>Excellent</option>
+                        <option value="good" {% if cargo and cargo.condition_before == 'good' %}selected{% endif %}>Good</option>
+                        <option value="fair" {% if cargo and cargo.condition_before == 'fair' %}selected{% endif %}>Fair</option>
+                        <option value="damaged" {% if cargo and cargo.condition_before == 'damaged' %}selected{% endif %}>Damaged</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="condition_after">Condition After</label>
+                    <select id="condition_after" name="condition_after" class="form-input">
+                        <option value="">— Select —</option>
+                        <option value="excellent" {% if cargo and cargo.condition_after == 'excellent' %}selected{% endif %}>Excellent</option>
+                        <option value="good" {% if cargo and cargo.condition_after == 'good' %}selected{% endif %}>Good</option>
+                        <option value="fair" {% if cargo and cargo.condition_after == 'fair' %}selected{% endif %}>Fair</option>
+                        <option value="damaged" {% if cargo and cargo.condition_after == 'damaged' %}selected{% endif %}>Damaged</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-4 border-t border-gray-100">
+                <button type="submit" class="btn-primary">
+                    {% if cargo %}Update Cargo{% else %}Add Cargo{% endif %}
+                </button>
+                <a href="{% url 'cargo_list' %}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

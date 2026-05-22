@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{% if payment %}Edit Payment{% else %}Add Payment{% endif %}{% endblock %}
+{% block page_title %}{% if payment %}Edit Payment{% else %}Add Payment{% endif %}{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="form-label" for="id_trip">Trip</label>
+                <select name="trip" id="id_trip" class="form-input" required>
+                    <option value="">— Select Trip —</option>
+                    {% for trip in trips %}
+                    <option value="{{ trip.pk }}" {% if payment and payment.trip_id == trip.pk %}selected{% endif %}>{{ trip.reference }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="id_client">Client</label>
+                <select name="client" id="id_client" class="form-input" required>
+                    <option value="">— Select Client —</option>
+                    {% for client in clients %}
+                    <option value="{{ client.pk }}" {% if payment and payment.client_id == client.pk %}selected{% endif %}>{{ client.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="id_amount_due">Amount Due</label>
+                <input type="number" name="amount_due" id="id_amount_due" step="0.01" min="0" class="form-input" required value="{{ payment.amount_due|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="id_amount_paid">Amount Paid</label>
+                <input type="number" name="amount_paid" id="id_amount_paid" step="0.01" min="0" class="form-input" required value="{{ payment.amount_paid|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="id_payment_date">Payment Date</label>
+                <input type="date" name="payment_date" id="id_payment_date" class="form-input" value="{{ payment.payment_date|date:'Y-m-d'|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="id_payment_method">Payment Method</label>
+                <input type="text" name="payment_method" id="id_payment_method" class="form-input" value="{{ payment.payment_method|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="id_notes">Notes</label>
+                <textarea name="notes" id="id_notes" rows="3" class="form-input">{{ payment.notes|default:'' }}</textarea>
+            </div>
+            <div class="flex items-center space-x-3 pt-2">
+                <button type="submit" class="btn-primary">{% if payment %}Update{% else %}Create{% endif %} Payment</button>
+                <a href="{% url 'payment_list' %}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

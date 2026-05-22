@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Profile - Trucking Tracker{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <div class="card p-6">
+        <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 bg-[#810B38] rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                {{ user.first_name|first|default:user.username|first|upper }}
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-[#541A1A]">{{ user.get_full_name|default:user.username }}</h3>
+                <p class="text-sm text-gray-500">{{ user.profile.get_role_display }}</p>
+                <p class="text-xs text-gray-400">Member since {{ user.date_joined|date:"F Y" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-6">
+        <h4 class="text-lg font-semibold text-[#541A1A] mb-4">Account Information</h4>
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <dt class="text-sm text-gray-500">Username</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ user.username }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm text-gray-500">Email</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ user.email|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm text-gray-500">First Name</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ user.first_name|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm text-gray-500">Last Name</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ user.last_name|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm text-gray-500">Role</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ user.profile.get_role_display }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm text-gray-500">Status</dt>
+                <dd>
+                    <span class="badge {% if user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ user.is_active|yesno:"Active,Inactive" }}
+                    </span>
+                </dd>
+            </div>
+            <div>
+                <dt class="text-sm text-gray-500">Phone</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ user.profile.phone|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm text-gray-500">Address</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ user.profile.address|default:"—" }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="flex justify-end space-x-3">
+        <a href="{% url 'profile_edit' %}" class="btn-primary">Edit Profile</a>
+    </div>
+</div>
+{% endblock %}

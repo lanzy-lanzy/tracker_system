@@ -1,0 +1,33 @@
+{% load humanize %}
+<div class="space-y-3">
+    {% for payment in payments %}
+    <div class="flex items-start space-x-3 pb-3 {% if not forloop.last %}border-b border-gray-100{% endif %}">
+        <div class="w-8 h-8 rounded-full
+            {% if payment.payment_status == 'paid' %}bg-green-100
+            {% elif payment.payment_status == 'partial' %}bg-yellow-100
+            {% else %}bg-red-100{% endif %} flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4
+                {% if payment.payment_status == 'paid' %}text-green-600
+                {% elif payment.payment_status == 'partial' %}text-yellow-600
+                {% else %}text-red-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 truncate">{{ payment.trip.reference_number }}</p>
+            <p class="text-xs text-gray-500">{{ payment.client.client_name }}</p>
+            <div class="flex items-center mt-1 space-x-2">
+                <span class="badge text-[10px]
+                    {% if payment.payment_status == 'paid' %}bg-green-100 text-green-800
+                    {% elif payment.payment_status == 'partial' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ payment.get_payment_status_display }}
+                </span>
+                <span class="text-[10px] text-gray-400">₱{{ payment.amount_due|floatformat:2|intcomma }}</span>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state py-4">
+        <p class="text-sm text-gray-400">No payments recorded.</p>
+    </div>
+    {% endfor %}
+</div>

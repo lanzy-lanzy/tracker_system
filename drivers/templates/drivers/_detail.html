@@ -1,0 +1,67 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-[#541A1A]">{{ driver.full_name }}</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+
+  {% if driver.is_license_expired %}
+  <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
+    <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+    <span class="text-sm font-medium text-red-700">License has expired ({{ driver.license_expiry|date:"M d, Y" }}). Please renew immediately.</span>
+  </div>
+  {% elif driver.days_until_license_expiry <= 30 %}
+  <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center space-x-2">
+    <svg class="w-5 h-5 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+    <span class="text-sm font-medium text-yellow-700">License expires in {{ driver.days_until_license_expiry }} days ({{ driver.license_expiry|date:"M d, Y" }}).</span>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <p class="form-label text-xs text-gray-500">Full Name</p>
+      <p class="text-sm font-medium text-gray-800">{{ driver.full_name }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Contact Number</p>
+      <p class="text-sm font-medium text-gray-800">{{ driver.contact_number }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">License Number</p>
+      <p class="text-sm font-medium text-gray-800 font-mono">{{ driver.license_number }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">License Expiry</p>
+      <p class="text-sm font-medium {% if driver.is_license_expired %}text-red-600{% else %}text-gray-800{% endif %}">
+        {{ driver.license_expiry|date:"M d, Y" }}
+        {% if driver.is_license_expired %}(Expired){% endif %}
+      </p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Assigned Truck</p>
+      <p class="text-sm font-medium text-gray-800">{{ driver.assigned_truck.plate_number|default:"Not assigned" }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Employment Status</p>
+      <p class="text-sm font-medium text-gray-800">{{ driver.get_employment_status_display }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Emergency Contact</p>
+      <p class="text-sm font-medium text-gray-800">{{ driver.emergency_contact_name|default:"—" }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Emergency Contact #</p>
+      <p class="text-sm font-medium text-gray-800">{{ driver.emergency_contact_number|default:"—" }}</p>
+    </div>
+    <div class="col-span-2">
+      <p class="form-label text-xs text-gray-500">Address</p>
+      <p class="text-sm text-gray-800">{{ driver.address|default:"No address provided." }}</p>
+    </div>
+    <div class="col-span-2">
+      <p class="form-label text-xs text-gray-500">Remarks</p>
+      <p class="text-sm text-gray-800">{{ driver.remarks|default:"No remarks." }}</p>
+    </div>
+  </div>
+  <div class="flex items-center justify-end mt-6 pt-4 border-t border-gray-200">
+    <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Close</button>
+  </div>
+</div>

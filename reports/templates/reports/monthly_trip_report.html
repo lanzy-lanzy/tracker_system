@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Monthly Trip Report{% endblock %}
+{% block page_title %}Monthly Trip Report{% endblock %}
+{% block print_title %}Monthly Trip Report{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="card p-4">
+        <form method="get" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="form-label" for="start_date">Start Date</label>
+                <input type="date" name="start_date" id="start_date" class="form-input" value="{{ request.GET.start_date|default:'' }}">
+            </div>
+            <div>
+                <label class="form-label" for="end_date">End Date</label>
+                <input type="date" name="end_date" id="end_date" class="form-input" value="{{ request.GET.end_date|default:'' }}">
+            </div>
+            <button type="submit" class="btn-primary">Generate Report</button>
+            <a href="{% url 'monthly_trip_report' %}" class="btn-secondary">Reset</a>
+            <button onclick="window.print()" class="btn-secondary ml-auto">Print</button>
+            <a href="{% url 'monthly_trip_pdf' %}{% if request.GET|length > 0 %}?{{ request.GET.urlencode }}{% endif %}" class="btn-secondary">PDF</a>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat-card">
+            <p class="text-sm text-[#541A1A] font-medium">Total Trips</p>
+            <p class="text-2xl font-bold text-[#810B38]">{{ total_trips|default:0 }}</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-sm text-[#541A1A] font-medium">Completed</p>
+            <p class="text-2xl font-bold text-green-600">{{ completed_trips|default:0 }}</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-sm text-[#541A1A] font-medium">Cancelled</p>
+            <p class="text-2xl font-bold text-red-600">{{ cancelled_trips|default:0 }}</p>
+        </div>
+        <div class="stat-card">
+            <p class="text-sm text-[#541A1A] font-medium">In Transit</p>
+            <p class="text-2xl font-bold text-blue-600">{{ in_transit_trips|default:0 }}</p>
+        </div>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="table-header">
+                    <tr>
+                        <th>Ref#</th>
+                        <th>Client</th>
+                        <th>Driver</th>
+                        <th>Pickup</th>
+                        <th>Dropoff</th>
+                        <th>Status</th>
+                        <th>Scheduled Delivery</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in trips %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="table-cell font-medium">{{ trip.reference_number }}</td>
+                        <td class="table-cell">{{ trip.client.client_name|default:"—" }}</td>
+                        <td class="table-cell">{{ trip.assigned_driver.full_name|default:"—" }}</td>
+                        <td class="table-cell">{{ trip.pickup_location|default:"—" }}</td>
+                        <td class="table-cell">{{ trip.dropoff_location|default:"—" }}</td>
+                        <td class="table-cell">
+                            <span class="badge
+                                {% if trip.status == 'delivered' %}bg-green-100 text-green-800
+                                {% elif trip.status == 'cancelled' %}bg-red-100 text-red-800
+                                {% elif trip.status == 'in_transit' %}bg-blue-100 text-blue-800
+                                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ trip.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="table-cell">{{ trip.scheduled_delivery|date:"M d, Y"|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-state">No trips found for the selected period</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

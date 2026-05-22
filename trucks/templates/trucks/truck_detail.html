@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ truck.plate_number }} - Trucking Tracker{% endblock %}
+
+{% block page_title %}{{ truck.plate_number }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-[#541A1A]">Truck Information</h3>
+                {% if truck.status == "available" %}
+                <span class="badge bg-green-100 text-green-700 text-sm px-3 py-1">Available</span>
+                {% elif truck.status == "assigned" %}
+                <span class="badge bg-blue-100 text-blue-700 text-sm px-3 py-1">Assigned</span>
+                {% elif truck.status == "on_trip" %}
+                <span class="badge bg-orange-100 text-orange-700 text-sm px-3 py-1">On Trip</span>
+                {% elif truck.status == "maintenance" %}
+                <span class="badge bg-red-100 text-red-700 text-sm px-3 py-1">Under Maintenance</span>
+                {% elif truck.status == "inactive" %}
+                <span class="badge bg-gray-100 text-gray-600 text-sm px-3 py-1">Inactive</span>
+                {% endif %}
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="form-label text-xs text-gray-500">Plate Number</p>
+                    <p class="text-sm font-medium text-gray-800">{{ truck.plate_number }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Unit Number</p>
+                    <p class="text-sm font-medium text-gray-800">{{ truck.unit_number|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Truck Type</p>
+                    <p class="text-sm font-medium text-gray-800">{{ truck.get_truck_type_display }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Capacity</p>
+                    <p class="text-sm font-medium text-gray-800">{{ truck.capacity|floatformat:0|default:"—" }} kg</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Year Model</p>
+                    <p class="text-sm font-medium text-gray-800">{{ truck.year_model|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Registration Number</p>
+                    <p class="text-sm font-medium text-gray-800">{{ truck.registration_number|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Registration Expiry</p>
+                    <p class="text-sm font-medium {% if truck.is_registration_expired %}text-red-600{% else %}text-gray-800{% endif %}">
+                        {{ truck.registration_expiry|date:"M d, Y"|default:"—" }}
+                        {% if truck.is_registration_expired %}(Expired){% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Insurance Expiry</p>
+                    <p class="text-sm font-medium {% if truck.is_insurance_expired %}text-red-600{% else %}text-gray-800{% endif %}">
+                        {{ truck.insurance_expiry|date:"M d, Y"|default:"—" }}
+                        {% if truck.is_insurance_expired %}(Expired){% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="form-label text-xs text-gray-500">Status</p>
+                    <p class="text-sm font-medium text-gray-800">{{ truck.get_status_display }}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="form-label text-xs text-gray-500">Remarks</p>
+                    <p class="text-sm text-gray-800">{{ truck.remarks|default:"No remarks."|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Maintenance History</h3>
+            {% if maintenance_records %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Cost</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in maintenance_records %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="table-cell">{{ record.service_date|date:"M d, Y" }}</td>
+                            <td class="table-cell">{{ record.get_maintenance_type_display }}</td>
+                            <td class="table-cell">{{ record.description|truncatewords:10 }}</td>
+                            <td class="table-cell">₱{{ record.cost|floatformat:2|intcomma|default:"—" }}</td>
+                            <td class="table-cell">
+                                {% if record.status == "completed" %}
+                                <span class="badge bg-green-100 text-green-700">Completed</span>
+                                {% elif record.status == "ongoing" %}
+                                <span class="badge bg-blue-100 text-blue-700">Ongoing</span>
+                                {% elif record.status == "scheduled" %}
+                                <span class="badge bg-yellow-100 text-yellow-700">Scheduled</span>
+                                {% elif record.status == "cancelled" %}
+                                <span class="badge bg-gray-100 text-gray-600">Cancelled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="table-cell">
+                                <div class="empty-state py-8">
+                                    <p class="text-gray-400">No maintenance records found.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state py-8">
+                <p class="text-gray-400">No maintenance records found.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Trip History</h3>
+            {% if trip_history %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Reference</th>
+                            <th>Client</th>
+                            <th>Pickup</th>
+                            <th>Dropoff</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trip in trip_history %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="table-cell font-medium">{{ trip.reference_number }}</td>
+                            <td class="table-cell">{{ trip.client.client_name }}</td>
+                            <td class="table-cell">{{ trip.pickup_location|truncatewords:5 }}</td>
+                            <td class="table-cell">{{ trip.dropoff_location|truncatewords:5 }}</td>
+                            <td class="table-cell">
+                                {% if trip.status == "delivered" %}
+                                <span class="badge bg-green-100 text-green-700">Delivered</span>
+                                {% elif trip.status == "in_transit" %}
+                                <span class="badge bg-blue-100 text-blue-700">In Transit</span>
+                                {% elif trip.status == "pending" %}
+                                <span class="badge bg-yellow-100 text-yellow-700">Pending</span>
+                                {% elif trip.status == "scheduled" %}
+                                <span class="badge bg-gray-100 text-gray-600">Scheduled</span>
+                                {% elif trip.status == "loading" %}
+                                <span class="badge bg-orange-100 text-orange-700">Loading</span>
+                                {% elif trip.status == "cancelled" %}
+                                <span class="badge bg-red-100 text-red-700">Cancelled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="table-cell">
+                                <div class="empty-state py-8">
+                                    <p class="text-gray-400">No trip history found.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state py-8">
+                <p class="text-gray-400">No trip history found.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Actions</h3>
+            <div class="space-y-3">
+                <a href="{% url 'truck_edit' truck.pk %}" class="btn-secondary w-full inline-flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span>Edit Truck</span>
+                </a>
+                <a href="{% url 'truck_delete' truck.pk %}" class="btn-danger w-full inline-flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Delete Truck</span>
+                </a>
+            </div>
+        </div>
+
+        {% if truck.registration_expiry or truck.insurance_expiry %}
+        <div class="card p-6">
+            <h3 class="text-lg font-semibold text-[#541A1A] mb-4">Expiry Alerts</h3>
+            <div class="space-y-3">
+                {% if truck.registration_expiry %}
+                <div class="flex items-center justify-between p-3 rounded-lg {% if truck.is_registration_expired %}bg-red-50 border border-red-200{% else %}bg-yellow-50 border border-yellow-200{% endif %}">
+                    <div>
+                        <p class="text-sm font-medium {% if truck.is_registration_expired %}text-red-700{% else %}text-yellow-700{% endif %}">Registration</p>
+                        <p class="text-xs {% if truck.is_registration_expired %}text-red-500{% else %}text-yellow-600{% endif %}">
+                            {% if truck.is_registration_expired %}Expired{% else %}{{ truck.days_until_registration_expiry }} days left{% endif %}
+                        </p>
+                    </div>
+                    <span class="text-xs {% if truck.is_registration_expired %}text-red-600{% else %}text-yellow-600{% endif %} font-medium">{{ truck.registration_expiry|date:"M d, Y" }}</span>
+                </div>
+                {% endif %}
+                {% if truck.insurance_expiry %}
+                <div class="flex items-center justify-between p-3 rounded-lg {% if truck.is_insurance_expired %}bg-red-50 border border-red-200{% else %}bg-yellow-50 border border-yellow-200{% endif %}">
+                    <div>
+                        <p class="text-sm font-medium {% if truck.is_insurance_expired %}text-red-700{% else %}text-yellow-700{% endif %}">Insurance</p>
+                        <p class="text-xs {% if truck.is_insurance_expired %}text-red-500{% else %}text-yellow-600{% endif %}">
+                            {% if truck.is_insurance_expired %}Expired{% else %}{{ truck.days_until_insurance_expiry }} days left{% endif %}
+                        </p>
+                    </div>
+                    <span class="text-xs {% if truck.is_insurance_expired %}text-red-600{% else %}text-yellow-600{% endif %} font-medium">{{ truck.insurance_expiry|date:"M d, Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% load humanize %}
+<div class="p-6" x-data="{ submitting: false }">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-[#541A1A]">{% if form_payment %}Edit{% else %}Add New{% endif %} Payment</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+  {% if error %}<div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{{ error }}</div>{% endif %}
+  <form hx-post="{{ action_url }}" hx-target="#modal-content" hx-swap="innerHTML" @submit="submitting = true">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label" for="trip">Trip</label>
+        <select name="trip" id="trip" class="form-input" required>
+          <option value="">— Select Trip —</option>
+          {% for trip in trips %}
+          <option value="{{ trip.pk }}" {% if form_payment and form_payment.trip_id == trip.pk %}selected{% endif %}>{{ trip.reference_number }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="client">Client</label>
+        <select name="client" id="client" class="form-input" required>
+          <option value="">— Select Client —</option>
+          {% for client in clients %}
+          <option value="{{ client.pk }}" {% if form_payment and form_payment.client_id == client.pk %}selected{% endif %}>{{ client.client_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="amount_due">Amount Due</label>
+        <input type="number" name="amount_due" id="amount_due" step="0.01" min="0" class="form-input" required value="{{ form_payment.amount_due|default:'' }}">
+      </div>
+      <div>
+        <label class="form-label" for="amount_paid">Amount Paid</label>
+        <input type="number" name="amount_paid" id="amount_paid" step="0.01" min="0" class="form-input" required value="{{ form_payment.amount_paid|default:'' }}">
+      </div>
+      <div>
+        <label class="form-label" for="payment_date">Payment Date</label>
+        <input type="date" name="payment_date" id="payment_date" class="form-input" value="{% if form_payment %}{{ form_payment.payment_date|date:'Y-m-d' }}{% endif %}">
+      </div>
+      <div>
+        <label class="form-label" for="payment_method">Payment Method</label>
+        <input type="text" name="payment_method" id="payment_method" class="form-input" value="{{ form_payment.payment_method|default:'' }}">
+      </div>
+      <div class="md:col-span-2">
+        <label class="form-label" for="notes">Notes</label>
+        <textarea name="notes" id="notes" rows="3" class="form-input">{{ form_payment.notes|default:'' }}</textarea>
+      </div>
+    </div>
+    <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+      <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Cancel</button>
+      <button type="submit" class="btn-primary" :disabled="submitting">
+        <span x-show="!submitting">Save</span>
+        <span x-show="submitting">Saving...</span>
+      </button>
+    </div>
+  </form>
+</div>

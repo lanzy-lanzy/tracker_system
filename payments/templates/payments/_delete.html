@@ -1,0 +1,15 @@
+{% load humanize %}
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-red-600">Confirm Delete</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+  <p class="text-gray-600 mb-6">Are you sure you want to delete <strong>{{ object }}</strong>? This action cannot be undone.</p>
+  <form hx-post="{{ action_url }}" hx-target="#modal-content" hx-swap="innerHTML">
+    {% csrf_token %}
+    <div class="flex items-center justify-end space-x-3">
+      <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Cancel</button>
+      <button type="submit" class="btn-danger">Delete</button>
+    </div>
+  </form>
+</div>

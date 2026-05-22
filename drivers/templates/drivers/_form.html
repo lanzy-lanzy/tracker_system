@@ -1,0 +1,75 @@
+<div class="p-6" x-data="{ submitting: false }">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-[#541A1A]">{% if form_driver %}Edit{% else %}Add New{% endif %} Driver</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+  {% if error %}<div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{{ error }}</div>{% endif %}
+  <form hx-post="{% if pk %}{% url action_url pk %}{% else %}{% url action_url %}{% endif %}" hx-target="#modal-content" hx-swap="innerHTML" @submit="submitting = true">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label" for="full_name">Full Name</label>
+        <input type="text" id="full_name" name="full_name" required value="{{ form_driver.full_name|default:'' }}" class="form-input" placeholder="e.g. Juan Dela Cruz">
+      </div>
+      <div>
+        <label class="form-label" for="contact_number">Contact Number</label>
+        <input type="text" id="contact_number" name="contact_number" required value="{{ form_driver.contact_number|default:'' }}" class="form-input" placeholder="e.g. 09171234567">
+      </div>
+      <div>
+        <label class="form-label" for="license_number">License Number</label>
+        <input type="text" id="license_number" name="license_number" required value="{{ form_driver.license_number|default:'' }}" class="form-input" placeholder="e.g. LIC-001">
+      </div>
+      <div>
+        <label class="form-label" for="license_expiry">License Expiry</label>
+        <input type="date" id="license_expiry" name="license_expiry" required value="{{ form_driver.license_expiry|date:'Y-m-d'|default:'' }}" class="form-input">
+      </div>
+      <div>
+        <label class="form-label" for="assigned_truck">Assigned Truck</label>
+        <select id="assigned_truck" name="assigned_truck" class="form-input">
+          <option value="">— Not Assigned —</option>
+          {% for truck in trucks %}
+          <option value="{{ truck.pk }}" {% if form_driver and form_driver.assigned_truck_id == truck.pk %}selected{% endif %}>
+            {{ truck.plate_number }} — {{ truck.get_truck_type_display }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="employment_status">Employment Status</label>
+        <select id="employment_status" name="employment_status" class="form-input">
+          {% for value, label in employment_statuses %}
+          <option value="{{ value }}" {% if form_driver and form_driver.employment_status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="emergency_contact_name">Emergency Contact Name</label>
+        <input type="text" id="emergency_contact_name" name="emergency_contact_name" value="{{ form_driver.emergency_contact_name|default:'' }}" class="form-input" placeholder="e.g. Maria Dela Cruz">
+      </div>
+      <div>
+        <label class="form-label" for="emergency_contact_number">Emergency Contact #</label>
+        <input type="text" id="emergency_contact_number" name="emergency_contact_number" value="{{ form_driver.emergency_contact_number|default:'' }}" class="form-input" placeholder="e.g. 09181234567">
+      </div>
+    </div>
+    <div>
+      <label class="form-label" for="address">Address</label>
+      <textarea id="address" name="address" rows="2" class="form-input" placeholder="Complete address...">{{ form_driver.address|default:'' }}</textarea>
+    </div>
+    <div>
+      <label class="form-label" for="remarks">Remarks</label>
+      <textarea id="remarks" name="remarks" rows="2" class="form-input" placeholder="Additional notes...">{{ form_driver.remarks|default:'' }}</textarea>
+    </div>
+    <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+      <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Cancel</button>
+      <button type="submit" class="btn-primary" :disabled="submitting">
+        <span x-show="!submitting">{% if form_driver %}Update{% else %}Save{% endif %} Driver</span>
+        <span x-show="submitting" class="flex items-center">
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg> Saving...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>

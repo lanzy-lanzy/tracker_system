@@ -1,0 +1,61 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-[#541A1A]">{{ record.truck.plate_number }} — {{ record.get_maintenance_type_display }}</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <p class="form-label text-xs text-gray-500">Truck</p>
+      <p class="text-sm font-medium text-gray-800">{{ record.truck.plate_number }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Maintenance Type</p>
+      <p class="text-sm font-medium text-gray-800">{{ record.get_maintenance_type_display }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Service Date</p>
+      <p class="text-sm font-medium text-gray-800">{{ record.service_date|date:"M d, Y" }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Next Service Date</p>
+      <p class="text-sm font-medium text-gray-800">
+        {{ record.next_service_date|date:"M d, Y"|default:"—" }}
+        {% if record.is_overdue %}<span class="text-red-600">(Overdue)</span>{% endif %}
+      </p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Cost</p>
+      <p class="text-sm font-medium text-gray-800">{% if record.cost %}₱{{ record.cost|floatformat:2|intcomma }}{% else %}—{% endif %}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Service Provider</p>
+      <p class="text-sm font-medium text-gray-800">{{ record.service_provider|default:"—" }}</p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Status</p>
+      <p><span class="badge text-white text-xs" style="background-color:
+        {% if record.status == 'scheduled' %}#0284c7
+        {% elif record.status == 'ongoing' %}#d97706
+        {% elif record.status == 'completed' %}#16a34a
+        {% elif record.status == 'cancelled' %}#dc2626
+        {% else %}#6b7280{% endif %};">{{ record.get_status_display }}</span></p>
+    </div>
+    <div>
+      <p class="form-label text-xs text-gray-500">Created At</p>
+      <p class="text-sm font-medium text-gray-800">{{ record.created_at|date:"M d, Y H:i" }}</p>
+    </div>
+    <div class="col-span-2">
+      <p class="form-label text-xs text-gray-500">Description</p>
+      <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ record.description|default:"—" }}</p>
+    </div>
+    {% if record.remarks %}
+    <div class="col-span-2">
+      <p class="form-label text-xs text-gray-500">Remarks</p>
+      <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ record.remarks }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="flex items-center justify-end mt-6 pt-4 border-t border-gray-200">
+    <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Close</button>
+  </div>
+</div>

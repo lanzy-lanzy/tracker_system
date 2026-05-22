@@ -1,0 +1,69 @@
+{% load humanize %}
+<div class="p-6" x-data="{ submitting: false }">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-xl font-bold text-[#541A1A]">{% if form_expense %}Edit{% else %}Add New{% endif %} Expense</h3>
+    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+  </div>
+  {% if error %}<div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{{ error }}</div>{% endif %}
+  <form hx-post="{{ action_url }}" hx-target="#modal-content" hx-swap="innerHTML" hx-encoding="multipart/form-data" @submit="submitting = true">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="form-label" for="trip">Trip</label>
+        <select name="trip" id="trip" class="form-input">
+          <option value="">— Select Trip —</option>
+          {% for trip in trips %}
+          <option value="{{ trip.pk }}" {% if form_expense and form_expense.trip_id == trip.pk %}selected{% endif %}>{{ trip.reference_number }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="truck">Truck</label>
+        <select name="truck" id="truck" class="form-input">
+          <option value="">— Select Truck —</option>
+          {% for truck in trucks %}
+          <option value="{{ truck.pk }}" {% if form_expense and form_expense.truck_id == truck.pk %}selected{% endif %}>{{ truck.plate_number }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="expense_type">Expense Type</label>
+        <select name="expense_type" id="expense_type" class="form-input" required>
+          <option value="">— Select Type —</option>
+          <option value="fuel" {% if form_expense and form_expense.expense_type == 'fuel' %}selected{% endif %}>Fuel</option>
+          <option value="toll" {% if form_expense and form_expense.expense_type == 'toll' %}selected{% endif %}>Toll</option>
+          <option value="repair" {% if form_expense and form_expense.expense_type == 'repair' %}selected{% endif %}>Repair</option>
+          <option value="allowance" {% if form_expense and form_expense.expense_type == 'allowance' %}selected{% endif %}>Driver Allowance</option>
+          <option value="parking" {% if form_expense and form_expense.expense_type == 'parking' %}selected{% endif %}>Parking</option>
+          <option value="other" {% if form_expense and form_expense.expense_type == 'other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label" for="amount">Amount</label>
+        <input type="number" name="amount" id="amount" step="0.01" min="0" class="form-input" required value="{{ form_expense.amount|default:'' }}">
+      </div>
+      <div>
+        <label class="form-label" for="date">Date</label>
+        <input type="date" name="date" id="date" class="form-input" value="{% if form_expense %}{{ form_expense.date|date:'Y-m-d' }}{% endif %}">
+      </div>
+      <div>
+        <label class="form-label" for="receipt">Receipt</label>
+        <input type="file" name="receipt" id="receipt" class="form-input" accept="image/*,.pdf">
+        {% if form_expense and form_expense.receipt %}
+        <p class="text-xs text-gray-500 mt-1">Current: <a href="{{ form_expense.receipt.url }}" target="_blank" class="text-[#810B38] hover:underline">View Receipt</a></p>
+        {% endif %}
+      </div>
+      <div class="md:col-span-2">
+        <label class="form-label" for="notes">Notes</label>
+        <textarea name="notes" id="notes" rows="3" class="form-input">{{ form_expense.notes|default:'' }}</textarea>
+      </div>
+    </div>
+    <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+      <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Cancel</button>
+      <button type="submit" class="btn-primary" :disabled="submitting">
+        <span x-show="!submitting">Save</span>
+        <span x-show="submitting">Saving...</span>
+      </button>
+    </div>
+  </form>
+</div>

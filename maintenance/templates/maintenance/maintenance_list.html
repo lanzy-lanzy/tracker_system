@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Maintenance - Trucking Tracker{% endblock %}
+
+{% block page_title %}Maintenance{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-[#541A1A]">Maintenance Records</h1>
+    <button hx-get="{% url 'maintenance_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+            class="btn-primary inline-flex items-center space-x-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <span>Add Record</span>
+    </button>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="table-header">
+                <tr>
+                    <th>Truck</th>
+                    <th>Type</th>
+                    <th>Service Date</th>
+                    <th>Next Service</th>
+                    <th>Cost</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if records %}
+                {% for record in records %}
+                <tr class="hover:bg-gray-50">
+                    <td class="table-cell font-medium">
+                        <a href="{% url 'truck_detail' pk=record.truck.pk %}" class="text-[#810B38] hover:underline">{{ record.truck.plate_number }}</a>
+                    </td>
+                    <td class="table-cell">{{ record.get_maintenance_type_display }}</td>
+                    <td class="table-cell">{{ record.service_date|date:"M d, Y" }}</td>
+                    <td class="table-cell">
+                        {{ record.next_service_date|date:"M d, Y"|default:"—" }}
+                        {% if record.is_overdue %}
+                        <span class="badge text-white ml-1" style="background-color:#dc2626;">Overdue</span>
+                        {% endif %}
+                    </td>
+                    <td class="table-cell">{% if record.cost %}₱{{ record.cost|floatformat:2|intcomma }}{% else %}—{% endif %}</td>
+                    <td class="table-cell">
+                        <span class="badge text-white" style="background-color:
+                            {% if record.status == 'scheduled' %}#0284c7
+                            {% elif record.status == 'ongoing' %}#d97706
+                            {% elif record.status == 'completed' %}#16a34a
+                            {% elif record.status == 'cancelled' %}#dc2626
+                            {% else %}#6b7280{% endif %};">
+                            {{ record.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="table-cell">
+                        <div class="flex items-center space-x-2">
+                            <button hx-get="{% url 'maintenance_modal_detail' pk=record.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                    class="text-[#810B38] hover:text-[#5C0828] text-sm font-medium">View</button>
+                            <button hx-get="{% url 'maintenance_modal_edit' pk=record.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                    class="text-amber-600 hover:text-amber-800 text-sm font-medium ml-2">Edit</button>
+                            <button hx-get="{% url 'maintenance_modal_delete' pk=record.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                    class="text-red-600 hover:text-red-800 text-sm font-medium ml-2">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="7" class="table-cell">
+                        <div class="empty-state">
+                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <p class="text-gray-500">No maintenance records found.</p>
+                            <button hx-get="{% url 'maintenance_modal_create' %}" hx-target="#modal-content" hx-swap="innerHTML"
+                                    class="btn-primary inline-flex items-center space-x-1 mt-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span>Add maintenance record</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
