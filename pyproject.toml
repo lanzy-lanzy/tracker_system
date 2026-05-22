@@ -1,0 +1,17 @@
+[project]
+name = "tracker"
+version = "1.0.0"
+requires-python = ">=3.11"
+dependencies = [
+  "Django==5.2.14",
+  "dj-database-url==3.0.1",
+  "psycopg2-binary==2.9.11",
+  "reportlab==4.5.1",
+  "whitenoise==6.11.0",
+]
+
+[tool.vercel]
+entrypoint = "tracker_system.wsgi:application"
+
+[tool.vercel.scripts]
+build = "python manage.py collectstatic --noinput"

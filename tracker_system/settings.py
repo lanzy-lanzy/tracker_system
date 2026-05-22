@@ -10,15 +10,50 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-8i*rs6=!s8=0#imj^zc@*$y!v)s!lw-7_+(1cysa0rx9($jp6h"
+DEBUG = os.environ.get("DEBUG", "False").lower() in {"1", "true", "yes", "on"}
 
-DEBUG = True
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-local-development-only"
+    else:
+        raise ImproperlyConfigured("SECRET_KEY environment variable is required when DEBUG=False.")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "tracker.vercel.app",
+    "tracker-system.vercel.app",
+    "lgu-tracker.vercel.app",
+    "trucking-tracker.vercel.app",
+    "tracker-system-app.vercel.app",
+]
+if DEBUG:
+    ALLOWED_HOSTS.extend(["127.0.0.1", "localhost"])
+ALLOWED_HOSTS.extend(
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+)
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://tracker.vercel.app",
+    "https://tracker-system.vercel.app",
+    "https://lgu-tracker.vercel.app",
+    "https://trucking-tracker.vercel.app",
+    "https://tracker-system-app.vercel.app",
+]
+CSRF_TRUSTED_ORIGINS.extend(
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -44,6 +79,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -73,10 +109,12 @@ TEMPLATES = [
 WSGI_APPLICATION = "tracker_system.wsgi.application"
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=os.environ.get("DATABASE_URL", "").startswith("postgres"),
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -104,7 +142,15 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = BASE_DIR / "public" / "static"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
