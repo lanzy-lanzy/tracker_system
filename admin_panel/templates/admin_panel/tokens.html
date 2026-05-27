@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Token Management{% endblock %}
+{% block page_title %}Token Management{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-4 border-b border-gray-100">
+        <p class="text-sm text-gray-500">{{ tokens|length }} outstanding token{{ tokens|pluralize }}</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="px-6 py-3">User</th>
+                    <th class="px-6 py-3">JTI</th>
+                    <th class="px-6 py-3">Created</th>
+                    <th class="px-6 py-3">Expires</th>
+                    <th class="px-6 py-3">Status</th>
+                    <th class="px-6 py-3 text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for t in tokens %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-[#541A1A] text-white flex items-center justify-center text-xs font-bold">
+                                {{ t.user.username|first|upper }}
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">{{ t.user.username }}</p>
+                                <p class="text-xs text-gray-500">{{ t.user.profile.get_role_display }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ t.jti|truncatechars:20 }}</code>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ t.created_at|date:"M d, Y H:i" }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ t.expires_at|date:"M d, Y H:i" }}</td>
+                    <td class="px-6 py-4">
+                        {% if t.is_blacklisted %}
+                        <span class="badge badge-danger">Revoked</span>
+                        {% elif t.expires_at < now %}
+                        <span class="badge badge-warning">Expired</span>
+                        {% else %}
+                        <span class="badge badge-success">Active</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        {% if not t.is_blacklisted %}
+                        <form method="post" action="{% url 'admin_revoke_token' t.id %}" class="inline" onsubmit="return confirm('Revoke this token? The user will need to log in again.')">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs text-red-600 hover:text-red-800 font-medium">Revoke</button>
+                        </form>
+                        {% else %}
+                        <span class="text-xs text-gray-400">Revoked</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                        <p class="text-lg mb-1">No tokens issued</p>
+                        <p class="text-sm">Tokens will appear here once users log in via the mobile app.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

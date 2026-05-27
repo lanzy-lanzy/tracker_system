@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Active Sessions{% endblock %}
+{% block page_title %}Active Sessions{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+        <p class="text-sm text-gray-500">{{ sessions|length }} active session{{ sessions|length|pluralize }}</p>
+        <form method="post" action="{% url 'admin_dashboard' %}" class="inline" onsubmit="return confirm('This will log out ALL users. Continue?')">
+            {% csrf_token %}
+            <button type="submit" class="text-sm text-red-600 hover:text-red-800 font-medium">Force Logout All</button>
+        </form>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="px-6 py-3">User</th>
+                    <th class="px-6 py-3">Role</th>
+                    <th class="px-6 py-3">Session Created</th>
+                    <th class="px-6 py-3">Expires</th>
+                    <th class="px-6 py-3">Session Key</th>
+                    <th class="px-6 py-3 text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for s in sessions %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        {% if s.user %}
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-[#541A1A] text-white flex items-center justify-center text-xs font-bold">
+                                {{ s.user.username|first|upper }}
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">{{ s.user.username }}</p>
+                                <p class="text-xs text-gray-500">{{ s.user.email }}</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <span class="text-gray-400 italic">Anonymous</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if s.user %}
+                        <span class="badge badge-{{ s.user.profile.role }}">{{ s.user.profile.get_role_display }}</span>
+                        {% else %}
+                        <span class="text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ s.created_at|date:"M d, Y H:i" }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ s.expire_date|date:"M d, Y H:i" }}</td>
+                    <td class="px-6 py-4">
+                        <code class="text-xs bg-gray-100 px-2 py-1 rounded">{{ s.session_key|truncatechars:16 }}</code>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <form method="post" action="{% url 'admin_delete_session' s.session_key %}" class="inline" onsubmit="return confirm('Force logout this session?')">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs text-red-600 hover:text-red-800 font-medium">Logout</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                        <p class="text-lg mb-1">No active sessions</p>
+                        <p class="text-sm">All sessions have expired or been cleared.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

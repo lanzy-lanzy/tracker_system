@@ -331,11 +331,33 @@
                 <div class="pt-4">
                     <hr class="border-t border-white/20 mb-3">
                     <p class="px-3 text-xs text-white/40 font-semibold uppercase tracking-wider">Administration</p>
-                    <a href="{% url 'user_list' %}"
-                       class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm mt-2 {% if request.resolver_match.url_name == 'user_list' %}active bg-white/10{% endif %}">
-                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
-                        <span>Users</span>
-                    </a>
+                    <div x-data="{ open: {% if request.resolver_match.url_name|slice:':5' == 'admin' %}true{% else %}false{% endif %} }">
+                        <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm mt-2 {% if request.resolver_match.url_name|slice:':5' == 'admin' %}active bg-white/10{% endif %}">
+                            <span class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                <span>Security Panel</span>
+                            </span>
+                            <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                            <a href="{% url 'admin_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'admin_dashboard' %}active bg-white/10{% endif %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{% url 'admin_sessions' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'admin_sessions' %}active bg-white/10{% endif %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                <span>Sessions</span>
+                            </a>
+                            <a href="{% url 'admin_tokens' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'admin_tokens' %}active bg-white/10{% endif %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                                <span>Tokens</span>
+                            </a>
+                            <a href="{% url 'user_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'user_list' %}active bg-white/10{% endif %}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                <span>Users</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
             </nav>

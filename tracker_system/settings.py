@@ -14,8 +14,11 @@ import os
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 DEBUG = os.environ.get("DEBUG", "False").lower() in {"1", "true", "yes", "on"}
 
@@ -80,6 +83,7 @@ INSTALLED_APPS = [
     "payments",
     "reports",
     "notifications",
+    "admin_panel",
 ]
 
 MIDDLEWARE = [

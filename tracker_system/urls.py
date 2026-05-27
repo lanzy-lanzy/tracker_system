@@ -27,6 +27,7 @@ urlpatterns = [
     path("payments/", include("payments.urls")),
     path("reports/", include("reports.urls")),
     path("notifications/", include("notifications.urls")),
+    path("admin-panel/", include("admin_panel.urls")),
 ]
 
 if settings.DEBUG:
