@@ -1,8 +1,10 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.http import JsonResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django_ratelimit.decorators import ratelimit
 from .models import Profile
@@ -102,3 +104,20 @@ def user_edit_view(request, pk):
         messages.success(request, "User updated successfully.")
         return redirect("user_list")
     return render(request, "accounts/user_form.html", {"edit_user": user})
+
+
+def setup_admin_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    expected = os.environ.get("SEED_ADMIN_PASSWORD")
+    if not expected:
+        return JsonResponse({"error": "SEED_ADMIN_PASSWORD not set"}, status=400)
+    provided = request.POST.get("seed")
+    if provided != expected:
+        return JsonResponse({"error": "Invalid seed"}, status=403)
+    if User.objects.filter(is_superuser=True).exists():
+        return JsonResponse({"message": "Admin already exists"}, status=200)
+    User.objects.create_superuser(
+        username="admin", email="admin@example.com", password=expected
+    )
+    return JsonResponse({"message": "Admin created"}, status=201)
