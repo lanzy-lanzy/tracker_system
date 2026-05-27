@@ -68,7 +68,9 @@ class IsAdminOrDispatcher(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         role = getattr(getattr(request.user, "profile", None), "role", None)
-        return role in ("admin", "dispatcher")
+        if role in ("admin", "dispatcher"):
+            return True
+        return request.method in permissions.SAFE_METHODS
 
 
 def _get_user_role(user):
