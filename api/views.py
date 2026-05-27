@@ -1,3 +1,5 @@
+import logging
+
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -7,6 +9,8 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+logger = logging.getLogger(__name__)
 
 from accounts.models import Profile
 from cargo.models import Cargo
@@ -52,6 +56,25 @@ class IsAdminRole(permissions.BasePermission):
         return _is_admin_role(request.user)
 
 
+class IsAdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return request.user and request.user.is_authenticated
+        return _is_admin_role(request.user)
+
+
+class IsAdminOrDispatcher(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        role = getattr(getattr(request.user, "profile", None), "role", None)
+        return role in ("admin", "dispatcher")
+
+
+def _get_user_role(user):
+    return getattr(getattr(user, "profile", None), "role", None)
+
+
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all().select_related("profile")
     serializer_class = UserSerializer
@@ -71,20 +94,24 @@ class ProfileViewSet(viewsets.ModelViewSet):
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
 
 
 class TruckViewSet(viewsets.ModelViewSet):
     queryset = Truck.objects.all()
     serializer_class = TruckSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
 
 
 class DriverViewSet(viewsets.ModelViewSet):
     queryset = Driver.objects.select_related("user", "assigned_truck")
     serializer_class = DriverSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
 
 
 class TripViewSet(viewsets.ModelViewSet):
     serializer_class = TripSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrDispatcher]
 
     def get_queryset(self):
         queryset = Trip.objects.select_related("client", "assigned_truck", "assigned_driver", "created_by")
@@ -126,31 +153,32 @@ class TripViewSet(viewsets.ModelViewSet):
 class CargoViewSet(viewsets.ModelViewSet):
     queryset = Cargo.objects.select_related("trip")
     serializer_class = CargoSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrDispatcher]
 
 
 class MaintenanceViewSet(viewsets.ModelViewSet):
     queryset = Maintenance.objects.select_related("truck")
     serializer_class = MaintenanceSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrDispatcher]
 
 
 class ExpenseViewSet(viewsets.ModelViewSet):
     queryset = Expense.objects.select_related("trip", "truck")
     serializer_class = ExpenseSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.select_related("trip", "client")
     serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
 
 
-class NotificationViewSet(viewsets.ModelViewSet):
+class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
 
     @action(detail=True, methods=["post"], url_path="mark-read")
     def mark_read(self, request, pk=None):

@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import FileExtensionValidator
 from trips.models import Trip
 from trucks.models import Truck
 
@@ -18,7 +19,10 @@ class Expense(models.Model):
     expense_type = models.CharField(max_length=20, choices=EXPENSE_TYPES)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     date = models.DateField()
-    receipt = models.ImageField(upload_to="receipts/", blank=True, null=True)
+    receipt = models.ImageField(
+        upload_to="receipts/", blank=True, null=True,
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "pdf"])],
+    )
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

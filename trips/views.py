@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.template.loader import render_to_string
 from .models import Trip
+from core.decorators import role_required
 from clients.models import Client
 from trucks.models import Truck
 from drivers.models import Driver
@@ -18,6 +19,7 @@ def trip_list_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def trip_create_view(request):
     if request.method == "POST":
         trip = Trip.objects.create(
@@ -58,6 +60,7 @@ def trip_detail_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def trip_edit_view(request, pk):
     trip = get_object_or_404(Trip, pk=pk)
     if request.method == "POST":
@@ -87,6 +90,7 @@ def trip_edit_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def trip_delete_view(request, pk):
     trip = get_object_or_404(Trip, pk=pk)
     if request.method == "POST":
@@ -97,6 +101,7 @@ def trip_delete_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def trip_update_status(request, pk, status):
     trip = get_object_or_404(Trip, pk=pk)
     valid_statuses = dict(Trip.STATUS_CHOICES)
@@ -116,6 +121,7 @@ def trip_update_status(request, pk, status):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def trip_upload_proof(request, pk):
     trip = get_object_or_404(Trip, pk=pk)
     if request.method == "POST" and request.FILES.get("delivery_proof"):
@@ -136,7 +142,7 @@ def trip_filter_view(request):
 
 
 @login_required
-@login_required
+@role_required("admin", "dispatcher")
 def trip_modal_create(request):
     if request.method == "POST":
         pickup_location = request.POST.get("pickup_location", "").strip()
@@ -183,6 +189,7 @@ def trip_modal_create(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def trip_modal_edit(request, pk):
     trip = get_object_or_404(Trip, pk=pk)
     if request.method == "POST":
@@ -226,6 +233,7 @@ def trip_modal_detail(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def trip_modal_delete(request, pk):
     trip = get_object_or_404(Trip, pk=pk)
     if request.method == "POST":

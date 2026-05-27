@@ -1,10 +1,15 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
 from .models import Maintenance
+from core.decorators import role_required
 from trucks.models import Truck
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -14,6 +19,7 @@ def maintenance_list_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def maintenance_create_view(request):
     if request.method == "POST":
         Maintenance.objects.create(
@@ -40,6 +46,7 @@ def maintenance_detail_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def maintenance_edit_view(request, pk):
     record = get_object_or_404(Maintenance, pk=pk)
     if request.method == "POST":
@@ -60,6 +67,7 @@ def maintenance_edit_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def maintenance_delete_view(request, pk):
     record = get_object_or_404(Maintenance, pk=pk)
     if request.method == "POST":
@@ -70,6 +78,7 @@ def maintenance_delete_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def maintenance_modal_create(request):
     trucks = Truck.objects.all()
     if request.method == "POST":
@@ -90,9 +99,10 @@ def maintenance_modal_create(request):
             response["HX-Redirect"] = reverse("maintenance_list")
             return response
         except Exception as e:
+            logger.exception("Error creating maintenance record")
             return render(request, "maintenance/_form.html", {
                 "form_record": None, "trucks": trucks,
-                "action_url": reverse("maintenance_modal_create"), "error": str(e),
+                "action_url": reverse("maintenance_modal_create"), "error": "An unexpected error occurred. Please check your input.",
             })
     return render(request, "maintenance/_form.html", {
         "form_record": None, "trucks": trucks,
@@ -101,6 +111,7 @@ def maintenance_modal_create(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def maintenance_modal_edit(request, pk):
     record = get_object_or_404(Maintenance, pk=pk)
     trucks = Truck.objects.all()
@@ -121,9 +132,10 @@ def maintenance_modal_edit(request, pk):
             response["HX-Redirect"] = reverse("maintenance_list")
             return response
         except Exception as e:
+            logger.exception("Error editing maintenance record %s", pk)
             return render(request, "maintenance/_form.html", {
                 "form_record": record, "trucks": trucks,
-                "action_url": reverse("maintenance_modal_edit", args=[pk]), "error": str(e),
+                "action_url": reverse("maintenance_modal_edit", args=[pk]), "error": "An unexpected error occurred. Please check your input.",
             })
     return render(request, "maintenance/_form.html", {
         "form_record": record, "trucks": trucks,
@@ -138,6 +150,7 @@ def maintenance_modal_detail(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def maintenance_modal_delete(request, pk):
     record = get_object_or_404(Maintenance, pk=pk)
     if request.method == "POST":

@@ -1,20 +1,34 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
+from django.db.models import Sum
+
 from .models import Payment
+from core.decorators import role_required
 from trips.models import Trip
 from clients.models import Client
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
 def payment_list_view(request):
     payments = Payment.objects.all().select_related("trip", "client")
-    return render(request, "payments/payment_list.html", {"payments": payments})
+    total_collected = payments.filter(payment_status="paid").aggregate(Sum("amount_paid"))["amount_paid__sum"] or 0
+    total_outstanding = payments.aggregate(Sum("balance"))["balance__sum"] or 0
+    return render(request, "payments/payment_list.html", {
+        "payments": payments,
+        "total_collected": total_collected,
+        "total_outstanding": total_outstanding,
+    })
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def payment_create_view(request):
     if request.method == "POST":
         trip = get_object_or_404(Trip, pk=request.POST.get("trip"))
@@ -35,6 +49,7 @@ def payment_create_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def payment_edit_view(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     if request.method == "POST":
@@ -56,6 +71,7 @@ def payment_edit_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def payment_delete_view(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     if request.method == "POST":
@@ -66,6 +82,7 @@ def payment_delete_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def payment_modal_create(request):
     trips = Trip.objects.all()
     clients = Client.objects.all()
@@ -86,9 +103,10 @@ def payment_modal_create(request):
             response["HX-Redirect"] = reverse("payment_list")
             return response
         except Exception as e:
+            logger.exception("Error creating payment")
             return render(request, "payments/_form.html", {
                 "form_payment": None, "trips": trips, "clients": clients,
-                "action_url": reverse("payment_modal_create"), "error": str(e),
+                "action_url": reverse("payment_modal_create"), "error": "An unexpected error occurred. Please check your input.",
             })
     return render(request, "payments/_form.html", {
         "form_payment": None, "trips": trips, "clients": clients,
@@ -97,6 +115,7 @@ def payment_modal_create(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def payment_modal_edit(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     trips = Trip.objects.all()
@@ -116,9 +135,10 @@ def payment_modal_edit(request, pk):
             response["HX-Redirect"] = reverse("payment_list")
             return response
         except Exception as e:
+            logger.exception("Error editing payment %s", pk)
             return render(request, "payments/_form.html", {
                 "form_payment": payment, "trips": trips, "clients": clients,
-                "action_url": reverse("payment_modal_edit", args=[pk]), "error": str(e),
+                "action_url": reverse("payment_modal_edit", args=[pk]), "error": "An unexpected error occurred. Please check your input.",
             })
     return render(request, "payments/_form.html", {
         "form_payment": payment, "trips": trips, "clients": clients,
@@ -127,6 +147,7 @@ def payment_modal_edit(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def payment_modal_delete(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     if request.method == "POST":

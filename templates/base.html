@@ -368,7 +368,7 @@
                                 </div>
                                 <div class="max-h-80 overflow-y-auto">
                                     {% for n in unread_notifications %}
-                                    <a href="{{ n.link|default:'#' }}" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-50">
+                                    <a href="{{ n.link|default:'#' }}" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-50" rel="noopener noreferrer">
                                         <p class="text-sm font-medium text-gray-800">{{ n.title }}</p>
                                         <p class="text-xs text-gray-500 mt-0.5">{{ n.message|truncatewords:10 }}</p>
                                         <p class="text-xs text-gray-400 mt-1">{{ n.created_at|timesince }} ago</p>

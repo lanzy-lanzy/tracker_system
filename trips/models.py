@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 from clients.models import Client
 from trucks.models import Truck
@@ -29,7 +30,10 @@ class Trip(models.Model):
     actual_pickup = models.DateTimeField(blank=True, null=True)
     actual_delivery = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    delivery_proof = models.FileField(upload_to="delivery_proofs/", blank=True, null=True)
+    delivery_proof = models.FileField(
+        upload_to="delivery_proofs/", blank=True, null=True,
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "pdf", "doc", "docx"])],
+    )
     remarks = models.TextField(blank=True, null=True)
     created_by = models.ForeignKey("auth.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="created_trips")
     created_at = models.DateTimeField(auto_now_add=True)

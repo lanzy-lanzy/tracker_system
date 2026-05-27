@@ -1,10 +1,15 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
 from .models import Cargo
+from core.decorators import role_required
 from trips.models import Trip
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -14,6 +19,7 @@ def cargo_list_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def cargo_create_view(request):
     if request.method == "POST":
         Cargo.objects.create(
@@ -33,6 +39,7 @@ def cargo_create_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def cargo_edit_view(request, pk):
     cargo = get_object_or_404(Cargo, pk=pk)
     if request.method == "POST":
@@ -52,6 +59,7 @@ def cargo_edit_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def cargo_delete_view(request, pk):
     cargo = get_object_or_404(Cargo, pk=pk)
     if request.method == "POST":
@@ -62,6 +70,7 @@ def cargo_delete_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def cargo_modal_create(request):
     trips = Trip.objects.all()
     if request.method == "POST":
@@ -81,9 +90,10 @@ def cargo_modal_create(request):
             response["HX-Redirect"] = reverse("cargo_list")
             return response
         except Exception as e:
+            logger.exception("Error creating cargo")
             return render(request, "cargo/_form.html", {
                 "form_cargo": None, "trips": trips,
-                "action_url": reverse("cargo_modal_create"), "error": str(e),
+                "action_url": reverse("cargo_modal_create"), "error": "An unexpected error occurred. Please check your input.",
             })
     return render(request, "cargo/_form.html", {
         "form_cargo": None, "trips": trips,
@@ -92,6 +102,7 @@ def cargo_modal_create(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def cargo_modal_edit(request, pk):
     cargo = get_object_or_404(Cargo, pk=pk)
     trips = Trip.objects.all()
@@ -111,9 +122,10 @@ def cargo_modal_edit(request, pk):
             response["HX-Redirect"] = reverse("cargo_list")
             return response
         except Exception as e:
+            logger.exception("Error editing cargo %s", pk)
             return render(request, "cargo/_form.html", {
                 "form_cargo": cargo, "trips": trips,
-                "action_url": reverse("cargo_modal_edit", args=[pk]), "error": str(e),
+                "action_url": reverse("cargo_modal_edit", args=[pk]), "error": "An unexpected error occurred. Please check your input.",
             })
     return render(request, "cargo/_form.html", {
         "form_cargo": cargo, "trips": trips,
@@ -122,6 +134,7 @@ def cargo_modal_edit(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def cargo_modal_delete(request, pk):
     cargo = get_object_or_404(Cargo, pk=pk)
     if request.method == "POST":

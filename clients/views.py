@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
 from .models import Client
+from core.decorators import role_required
 from trips.models import Trip
 from payments.models import Payment
 
@@ -15,6 +16,7 @@ def client_list_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def client_create_view(request):
     if request.method == "POST":
         client = Client.objects.create(
@@ -44,6 +46,7 @@ def client_detail_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def client_edit_view(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == "POST":
@@ -61,6 +64,7 @@ def client_edit_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def client_delete_view(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == "POST":
@@ -71,6 +75,7 @@ def client_delete_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def client_modal_create(request):
     if request.method == "POST":
         client_name = request.POST.get("client_name", "").strip()
@@ -96,6 +101,7 @@ def client_modal_create(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def client_modal_edit(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == "POST":
@@ -131,6 +137,7 @@ def client_modal_detail(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def client_modal_delete(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == "POST":

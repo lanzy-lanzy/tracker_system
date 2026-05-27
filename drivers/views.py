@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.urls import reverse
 from .models import Driver
+from core.decorators import role_required
 from trips.models import Trip
 from trucks.models import Truck
 
@@ -16,6 +17,7 @@ def driver_list_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def driver_create_view(request):
     if request.method == "POST":
         driver = Driver.objects.create(
@@ -47,6 +49,7 @@ def driver_detail_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def driver_edit_view(request, pk):
     driver = get_object_or_404(Driver, pk=pk)
     if request.method == "POST":
@@ -68,6 +71,7 @@ def driver_edit_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def driver_delete_view(request, pk):
     driver = get_object_or_404(Driver, pk=pk)
     if request.method == "POST":
@@ -78,6 +82,7 @@ def driver_delete_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def driver_modal_create(request):
     trucks = Truck.objects.filter(status="available")
     if request.method == "POST":
@@ -106,6 +111,7 @@ def driver_modal_create(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def driver_modal_edit(request, pk):
     driver = get_object_or_404(Driver, pk=pk)
     trucks = Truck.objects.filter(status="available") | Truck.objects.filter(pk=driver.assigned_truck_id)
@@ -142,6 +148,7 @@ def driver_modal_detail(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def driver_modal_delete(request, pk):
     driver = get_object_or_404(Driver, pk=pk)
     if request.method == "POST":

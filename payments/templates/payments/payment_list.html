@@ -62,17 +62,17 @@
                 <tbody>
                     {% for payment in payments %}
                     <tr class="hover:bg-gray-50">
-                        <td class="table-cell">{{ payment.trip.reference }}</td>
-                        <td class="table-cell">{{ payment.client.name }}</td>
+                        <td class="table-cell">{{ payment.trip.reference_number }}</td>
+                        <td class="table-cell">{{ payment.client.client_name }}</td>
                         <td class="table-cell">₱{{ payment.amount_due|floatformat:2|intcomma }}</td>
                         <td class="table-cell">₱{{ payment.amount_paid|floatformat:2|intcomma }}</td>
                         <td class="table-cell font-medium">₱{{ payment.balance|floatformat:2|intcomma }}</td>
                         <td class="table-cell">
                             <span class="badge
-                                {% if payment.status == 'unpaid' %}bg-red-100 text-red-800
-                                {% elif payment.status == 'partial' %}bg-yellow-100 text-yellow-800
+                                {% if payment.payment_status == 'unpaid' %}bg-red-100 text-red-800
+                                {% elif payment.payment_status == 'partial' %}bg-yellow-100 text-yellow-800
                                 {% else %}bg-green-100 text-green-800{% endif %}">
-                                {{ payment.get_status_display }}
+                                {{ payment.get_payment_status_display }}
                             </span>
                         </td>
                         <td class="table-cell">{{ payment.payment_date|date:"M d, Y" }}</td>

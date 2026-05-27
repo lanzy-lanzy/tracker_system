@@ -1,11 +1,16 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
 from .models import Expense
+from core.decorators import role_required
 from trips.models import Trip
 from trucks.models import Truck
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -15,6 +20,7 @@ def expense_list_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def expense_create_view(request):
     if request.method == "POST":
         Expense.objects.create(
@@ -34,6 +40,7 @@ def expense_create_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def expense_edit_view(request, pk):
     expense = get_object_or_404(Expense, pk=pk)
     if request.method == "POST":
@@ -56,6 +63,7 @@ def expense_edit_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def expense_delete_view(request, pk):
     expense = get_object_or_404(Expense, pk=pk)
     if request.method == "POST":
@@ -66,6 +74,7 @@ def expense_delete_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def expense_modal_create(request):
     trips = Trip.objects.all()
     trucks = Truck.objects.all()
@@ -85,9 +94,10 @@ def expense_modal_create(request):
             response["HX-Redirect"] = reverse("expense_list")
             return response
         except Exception as e:
+            logger.exception("Error creating expense")
             return render(request, "expenses/_form.html", {
                 "form_expense": None, "trips": trips, "trucks": trucks,
-                "action_url": reverse("expense_modal_create"), "error": str(e),
+                "action_url": reverse("expense_modal_create"), "error": "An unexpected error occurred. Please check your input.",
             })
     return render(request, "expenses/_form.html", {
         "form_expense": None, "trips": trips, "trucks": trucks,
@@ -96,6 +106,7 @@ def expense_modal_create(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def expense_modal_edit(request, pk):
     expense = get_object_or_404(Expense, pk=pk)
     trips = Trip.objects.all()
@@ -116,9 +127,10 @@ def expense_modal_edit(request, pk):
             response["HX-Redirect"] = reverse("expense_list")
             return response
         except Exception as e:
+            logger.exception("Error editing expense %s", pk)
             return render(request, "expenses/_form.html", {
                 "form_expense": expense, "trips": trips, "trucks": trucks,
-                "action_url": reverse("expense_modal_edit", args=[pk]), "error": str(e),
+                "action_url": reverse("expense_modal_edit", args=[pk]), "error": "An unexpected error occurred. Please check your input.",
             })
     return render(request, "expenses/_form.html", {
         "form_expense": expense, "trips": trips, "trucks": trucks,
@@ -127,6 +139,7 @@ def expense_modal_edit(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def expense_modal_delete(request, pk):
     expense = get_object_or_404(Expense, pk=pk)
     if request.method == "POST":

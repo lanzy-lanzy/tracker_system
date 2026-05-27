@@ -5,6 +5,7 @@ from django.db.models import Count
 from django.http import HttpResponse
 from django.urls import reverse
 from .models import Truck
+from core.decorators import role_required
 from maintenance.models import Maintenance
 from trips.models import Trip
 
@@ -16,6 +17,7 @@ def truck_list_view(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def truck_create_view(request):
     if request.method == "POST":
         plate_number = request.POST.get("plate_number")
@@ -52,6 +54,7 @@ def truck_detail_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def truck_edit_view(request, pk):
     truck = get_object_or_404(Truck, pk=pk)
     if request.method == "POST":
@@ -72,6 +75,7 @@ def truck_edit_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def truck_delete_view(request, pk):
     truck = get_object_or_404(Truck, pk=pk)
     if request.method == "POST":
@@ -82,6 +86,7 @@ def truck_delete_view(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def truck_modal_create(request):
     if request.method == "POST":
         plate = request.POST.get("plate_number")
@@ -117,6 +122,7 @@ def truck_modal_create(request):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def truck_modal_edit(request, pk):
     truck = get_object_or_404(Truck, pk=pk)
     if request.method == "POST":
@@ -152,6 +158,7 @@ def truck_modal_detail(request, pk):
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def truck_modal_delete(request, pk):
     truck = get_object_or_404(Truck, pk=pk)
     if request.method == "POST":
