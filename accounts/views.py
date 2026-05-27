@@ -117,10 +117,12 @@ def setup_admin_view(request):
     provided = request.POST.get("seed")
     if provided != expected:
         return JsonResponse({"error": "Invalid seed"}, status=403)
-    if User.objects.filter(is_superuser=True).exists():
-        admin = User.objects.filter(is_superuser=True).first()
+    admin = User.objects.filter(is_superuser=True).first()
+    if admin:
+        admin.set_password(expected)
+        admin.save()
         return JsonResponse({
-            "message": "Admin already exists",
+            "message": "Admin password reset",
             "username": admin.username,
             "is_active": admin.is_active,
         }, status=200)
