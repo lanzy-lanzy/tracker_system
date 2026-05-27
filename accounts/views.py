@@ -1,12 +1,9 @@
-import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.http import JsonResponse
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 from .models import Profile
 
@@ -105,32 +102,3 @@ def user_edit_view(request, pk):
         messages.success(request, "User updated successfully.")
         return redirect("user_list")
     return render(request, "accounts/user_form.html", {"edit_user": user})
-
-
-@csrf_exempt
-def setup_admin_view(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "POST required"}, status=405)
-    expected = os.environ.get("SEED_ADMIN_PASSWORD")
-    if not expected:
-        return JsonResponse({"error": "SEED_ADMIN_PASSWORD not set"}, status=400)
-    provided = request.POST.get("seed")
-    if provided != expected:
-        return JsonResponse({"error": "Invalid seed"}, status=403)
-    admin = User.objects.filter(is_superuser=True).first()
-    if admin:
-        admin.set_password(expected)
-        admin.save()
-        return JsonResponse({
-            "message": "Admin password reset",
-            "username": admin.username,
-            "is_active": admin.is_active,
-        }, status=200)
-    user = User.objects.create_superuser(
-        username="admin", email="admin@example.com", password=expected
-    )
-    return JsonResponse({
-        "message": "Admin created",
-        "username": user.username,
-        "is_active": user.is_active,
-    }, status=201)
