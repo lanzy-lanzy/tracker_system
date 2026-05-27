@@ -118,8 +118,17 @@ def setup_admin_view(request):
     if provided != expected:
         return JsonResponse({"error": "Invalid seed"}, status=403)
     if User.objects.filter(is_superuser=True).exists():
-        return JsonResponse({"message": "Admin already exists"}, status=200)
-    User.objects.create_superuser(
+        admin = User.objects.filter(is_superuser=True).first()
+        return JsonResponse({
+            "message": "Admin already exists",
+            "username": admin.username,
+            "is_active": admin.is_active,
+        }, status=200)
+    user = User.objects.create_superuser(
         username="admin", email="admin@example.com", password=expected
     )
-    return JsonResponse({"message": "Admin created"}, status=201)
+    return JsonResponse({
+        "message": "Admin created",
+        "username": user.username,
+        "is_active": user.is_active,
+    }, status=201)
