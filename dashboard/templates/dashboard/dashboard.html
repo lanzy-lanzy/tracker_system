@@ -6,7 +6,7 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-6" data-api-dashboard-url="{% url 'api-dashboard-summary' %}">
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="stat-card flex items-center space-x-4">
@@ -14,7 +14,7 @@
                 <svg class="w-6 h-6 text-[#810B38]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">{{ total_trucks }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="total_trucks">{{ total_trucks }}</p>
                 <p class="text-xs text-gray-500">Total Trucks</p>
             </div>
         </div>
@@ -23,7 +23,7 @@
                 <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">{{ available_trucks }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="available_trucks">{{ available_trucks }}</p>
                 <p class="text-xs text-gray-500">Available Trucks</p>
             </div>
         </div>
@@ -32,7 +32,7 @@
                 <svg class="w-6 h-6 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">{{ maintenance_trucks }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="maintenance_trucks">{{ maintenance_trucks }}</p>
                 <p class="text-xs text-gray-500">Under Maintenance</p>
             </div>
         </div>
@@ -41,7 +41,7 @@
                 <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">{{ total_drivers }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="total_drivers">{{ total_drivers }}</p>
                 <p class="text-xs text-gray-500">Total Drivers</p>
             </div>
         </div>
@@ -53,7 +53,7 @@
                 <svg class="w-6 h-6 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">{{ active_trips }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="active_trips">{{ active_trips }}</p>
                 <p class="text-xs text-gray-500">Active Trips</p>
             </div>
         </div>
@@ -62,7 +62,7 @@
                 <svg class="w-6 h-6 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">{{ pending_trips }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="pending_trips">{{ pending_trips }}</p>
                 <p class="text-xs text-gray-500">Pending Trips</p>
             </div>
         </div>
@@ -71,7 +71,7 @@
                 <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">{{ completed_trips }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="completed_trips">{{ completed_trips }}</p>
                 <p class="text-xs text-gray-500">Completed</p>
             </div>
         </div>
@@ -80,7 +80,7 @@
                 <svg class="w-6 h-6 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">{{ cancelled_trips }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="cancelled_trips">{{ cancelled_trips }}</p>
                 <p class="text-xs text-gray-500">Cancelled</p>
             </div>
         </div>
@@ -92,7 +92,7 @@
                 <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">₱{{ monthly_revenue|floatformat:2|intcomma }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="monthly_revenue" data-api-format="money">₱{{ monthly_revenue|floatformat:2|intcomma }}</p>
                 <p class="text-xs text-gray-500">Monthly Revenue</p>
             </div>
         </div>
@@ -101,7 +101,7 @@
                 <svg class="w-6 h-6 text-rose-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
             <div>
-                <p class="text-2xl font-bold text-[#541A1A]">₱{{ monthly_expenses|floatformat:2|intcomma }}</p>
+                <p class="text-2xl font-bold text-[#541A1A]" data-api-stat="monthly_expenses" data-api-format="money">₱{{ monthly_expenses|floatformat:2|intcomma }}</p>
                 <p class="text-xs text-gray-500">Monthly Expenses</p>
             </div>
         </div>
@@ -190,4 +190,10 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+{% load static %}
+<script defer src="{% static 'js/dashboard-api.js' %}"></script>
 {% endblock %}

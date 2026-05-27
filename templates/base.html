@@ -13,6 +13,9 @@
     <script src="{% static 'vendor/tailwind.min.js' %}"></script>
     <script src="{% static 'vendor/htmx.min.js' %}"></script>
     <script defer src="{% static 'vendor/alpine.min.js' %}"></script>
+    {% if user.is_authenticated %}
+    <script defer src="{% static 'js/api-client.js' %}"></script>
+    {% endif %}
     <style>
         :root {
             --primary: #810B38;

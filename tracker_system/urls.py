@@ -13,6 +13,7 @@ def root_redirect(request):
 
 urlpatterns = [
     path("", root_redirect, name="root"),
+    path("api/", include("api.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path("dashboard/", include("dashboard.urls")),

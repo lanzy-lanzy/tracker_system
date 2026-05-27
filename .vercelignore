@@ -11,5 +11,4 @@ venv/
 node_modules/
 db.sqlite3
 media/
-public/static/
 staticfiles/

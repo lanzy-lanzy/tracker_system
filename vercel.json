@@ -2,12 +2,15 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "builds": [
     {
-      "src": "tracker_system/wsgi.py",
-      "use": "@vercel/python"
+      "src": "build_files.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "public"
+      }
     },
     {
-      "src": "static/**",
-      "use": "@vercel/static"
+      "src": "tracker_system/wsgi.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [

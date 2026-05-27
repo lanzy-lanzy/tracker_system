@@ -9,9 +9,9 @@
     <div class="flex items-center space-x-3">
         <div class="relative">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" placeholder="Search trucks..." class="form-input pl-10 w-64">
+            <input type="text" placeholder="Search trucks..." class="form-input pl-10 w-64" data-api-truck-search>
         </div>
-        <select class="form-input w-40">
+        <select class="form-input w-40" data-api-truck-type>
             <option value="">All Types</option>
             <option value="flatbed">Flatbed</option>
             <option value="box">Box Truck</option>
@@ -21,7 +21,7 @@
             <option value="container">Container</option>
             <option value="other">Other</option>
         </select>
-        <select class="form-input w-40">
+        <select class="form-input w-40" data-api-truck-status>
             <option value="">All Status</option>
             <option value="available">Available</option>
             <option value="assigned">Assigned</option>
@@ -37,7 +37,7 @@
     </button>
 </div>
 
-<div class="card overflow-hidden">
+<div class="card overflow-hidden" data-api-list="trucks" data-api-url="{% url 'api-trucks-list' %}">
     <table class="w-full">
         <thead class="table-header">
             <tr>
@@ -50,7 +50,10 @@
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody data-api-truck-table
+               data-detail-template="{% url 'truck_modal_detail' pk=0 %}"
+               data-edit-template="{% url 'truck_modal_edit' pk=0 %}"
+               data-delete-template="{% url 'truck_modal_delete' pk=0 %}">
             {% for truck in trucks %}
             <tr class="hover:bg-gray-50 transition">
                 <td class="table-cell font-medium text-[#541A1A]">{{ truck.plate_number }}</td>
@@ -107,4 +110,10 @@
         </tbody>
     </table>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+{% load static %}
+<script defer src="{% static 'js/truck-list-api.js' %}"></script>
 {% endblock %}
