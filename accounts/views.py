@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 from .models import Profile
 
@@ -106,6 +107,7 @@ def user_edit_view(request, pk):
     return render(request, "accounts/user_form.html", {"edit_user": user})
 
 
+@csrf_exempt
 def setup_admin_view(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=405)
