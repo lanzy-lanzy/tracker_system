@@ -11,9 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-import sys
 from pathlib import Path
-import socket
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -22,19 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
 
-db_url = os.environ.get("DATABASE_URL", "")
-if "supabase.co" in db_url:
-    import re
-    match = re.search(r"@([^:]+):(\d+)", db_url)
-    if match:
-        host, port = match.group(1), match.group(2)
-        try:
-            ips = [r[4][0] for r in socket.getaddrinfo(host, int(port), socket.AF_INET, socket.SOCK_STREAM)]
-            if ips:
-                os.environ["DATABASE_URL"] = db_url.replace(f"@{host}:", f"@{ips[0]}:")
-                print(f"Resolved {host} -> {ips[0]}", file=sys.stderr)
-        except Exception as e:
-            print(f"DNS resolution failed: {e}", file=sys.stderr)
+
 
 DEBUG = os.environ.get("DEBUG", "False").lower() in {"1", "true", "yes", "on"}
 
