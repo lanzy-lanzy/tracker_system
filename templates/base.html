@@ -451,7 +451,8 @@
          x-show="open"
          x-cloak
          @keydown.escape.window="close"
-         class="fixed inset-0 z-50 overflow-y-auto">
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none">
         <div x-show="open"
              x-transition.opacity.duration.300
              @click="close"
