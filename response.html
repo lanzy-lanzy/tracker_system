@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trucking Tracker - Login</title>
+    
+    <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/static/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+    <script src="/static/vendor/tailwind.min.js"></script>
+    <style>
+        :root {
+            --primary: #810B38;
+            --primary-light: #9C0E43;
+            --primary-dark: #5C0828;
+            --cream: #F1E2D1;
+            --beige: #DCC3AA;
+            --dark: #541A1A;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        .login-bg {
+            background: #FEFAF6;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(129,11,56,0.1);
+        }
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center login-bg">
+    <div class="w-full max-w-md mx-4">
+        <div class="text-center mb-8">
+            <img src="/static/logo/logo%20and%20names.png" alt="Trucking Tracker" class="h-16 mx-auto mb-4 object-contain">
+            <p class="text-[#541A1A]/60 text-sm">Fleet Management System</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <h2 class="text-xl font-semibold text-[#541A1A] mb-6">Sign In</h2>
+
+            
+
+            <form method="post" class="space-y-4">
+                <input type="hidden" name="csrfmiddlewaretoken" value="XqRAfZmOKIxqMj2O5aRIgaT624tngeEdtkWJ0PRM3kbCGgUOmbFZsFqdeahzMN3I">
+                <div>
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-input" placeholder="Enter your username" required autofocus>
+                </div>
+                <div>
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn-primary w-full text-center cursor-pointer">Sign In</button>
+            </form>
+        </div>
+
+        <p class="text-center text-sm text-[#541A1A]/40 mt-6">&copy; 2026 Trucking Tracker. All rights reserved.</p>
+    </div>
+</body>
+</html>
