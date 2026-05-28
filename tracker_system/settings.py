@@ -29,30 +29,26 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured("SECRET_KEY environment variable is required when DEBUG=False.")
 
-ALLOWED_HOSTS = [
-    "fast-track-blond.vercel.app",
-]
+ALLOWED_HOSTS = []
 if DEBUG:
     ALLOWED_HOSTS.extend(["127.0.0.1", "localhost"])
+for var in ("VERCEL_URL", "VERCEL_BRANCH_URL"):
+    vercel_host = os.environ.get(var)
+    if vercel_host:
+        ALLOWED_HOSTS.append(vercel_host)
+
 ALLOWED_HOSTS.extend(
     host.strip()
     for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
     if host.strip()
 )
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://fast-track-blond.vercel.app",
-    "https://fast-track.vercel.app",
-    "https://lgu-supply.vercel.app",
-    "https://track-5276.vercel.app",
-    "https://track-system.vercel.app",
-    "https://tracker.vercel.app",
-    "https://tracker-system.vercel.app",
-    "https://fleet-tracker.vercel.app",
-    "https://lgu-tracker.vercel.app",
-    "https://trucking-tracker.vercel.app",
-    "https://tracker-system-app.vercel.app",
-]
+CSRF_TRUSTED_ORIGINS = []
+for var in ("VERCEL_URL", "VERCEL_BRANCH_URL"):
+    vercel_host = os.environ.get(var)
+    if vercel_host:
+        CSRF_TRUSTED_ORIGINS.append(f"https://{vercel_host}")
+
 CSRF_TRUSTED_ORIGINS.extend(
     origin.strip()
     for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
