@@ -1,54 +1,137 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block title %}{% if payment %}Edit Payment{% else %}Add Payment{% endif %}{% endblock %}
 {% block page_title %}{% if payment %}Edit Payment{% else %}Add Payment{% endif %}{% endblock %}
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div class="max-w-2xl mx-auto" x-data="paymentForm()">
+  {% if error %}<div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{{ error }}</div>{% endif %}
     <div class="card p-6">
-        <form method="post" class="space-y-4">
+        <form method="post" class="space-y-4" @submit="submitForm($event)">
             {% csrf_token %}
-            <div>
-                <label class="form-label" for="id_trip">Trip</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label" for="id_trip">Trip <span class="text-red-500">*</span></label>
                 <select name="trip" id="id_trip" class="form-input" required>
                     <option value="">— Select Trip —</option>
                     {% for trip in trips %}
-                    <option value="{{ trip.pk }}" {% if payment and payment.trip_id == trip.pk %}selected{% endif %}>{{ trip.reference }}</option>
+                    <option value="{{ trip.pk }}" {% if payment and payment.trip_id == trip.pk %}selected{% endif %}>{{ trip.reference_number }} — {{ trip.client.client_name }}</option>
                     {% endfor %}
                 </select>
-            </div>
-            <div>
-                <label class="form-label" for="id_client">Client</label>
+              </div>
+              <div>
+                <label class="form-label" for="id_client">Client <span class="text-red-500">*</span></label>
                 <select name="client" id="id_client" class="form-input" required>
                     <option value="">— Select Client —</option>
                     {% for client in clients %}
-                    <option value="{{ client.pk }}" {% if payment and payment.client_id == client.pk %}selected{% endif %}>{{ client.name }}</option>
+                    <option value="{{ client.pk }}" {% if payment and payment.client_id == client.pk %}selected{% endif %}>{{ client.client_name }}</option>
                     {% endfor %}
                 </select>
-            </div>
-            <div>
-                <label class="form-label" for="id_amount_due">Amount Due</label>
-                <input type="number" name="amount_due" id="id_amount_due" step="0.01" min="0" class="form-input" required value="{{ payment.amount_due|default:'' }}">
-            </div>
-            <div>
-                <label class="form-label" for="id_amount_paid">Amount Paid</label>
-                <input type="number" name="amount_paid" id="id_amount_paid" step="0.01" min="0" class="form-input" required value="{{ payment.amount_paid|default:'' }}">
-            </div>
-            <div>
+              </div>
+              <div>
+                <label class="form-label" for="id_amount_due">Amount Due <span class="text-red-500">*</span></label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₱</span>
+                  <input type="text" name="amount_due" id="id_amount_due" x-model="amountDue" @input="formatAmount('amountDue')" @blur="formatBlur('amountDue')" class="form-input pl-8" required value="{% if payment %}{{ payment.amount_due|floatformat:2|intcomma }}{% endif %}">
+                </div>
+              </div>
+              <div>
+                <label class="form-label" for="id_amount_paid">Amount Paid <span class="text-red-500">*</span></label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₱</span>
+                  <input type="text" name="amount_paid" id="id_amount_paid" x-model="amountPaid" @input="formatAmount('amountPaid')" @blur="formatBlur('amountPaid')" class="form-input pl-8" required value="{% if payment %}{{ payment.amount_paid|floatformat:2|intcomma }}{% endif %}">
+                </div>
+              </div>
+              <div>
+                <label class="form-label" for="id_payment_method">Payment Method <span class="text-red-500">*</span></label>
+                <select name="payment_method" id="id_payment_method" x-model="paymentMethod" class="form-input" required>
+                    <option value="">— Select Method —</option>
+                    <option value="cash" {% if payment.payment_method == 'cash' %}selected{% endif %}>Cash</option>
+                    <option value="bank_transfer" {% if payment.payment_method == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
+                    <option value="check" {% if payment.payment_method == 'check' %}selected{% endif %}>Check</option>
+                    <option value="gcash" {% if payment.payment_method == 'gcash' %}selected{% endif %}>G-Cash</option>
+                    <option value="maya" {% if payment.payment_method == 'maya' %}selected{% endif %}>Maya</option>
+                    <option value="other" {% if payment.payment_method == 'other' %}selected{% endif %}>Other</option>
+                </select>
+              </div>
+              <div>
                 <label class="form-label" for="id_payment_date">Payment Date</label>
-                <input type="date" name="payment_date" id="id_payment_date" class="form-input" value="{{ payment.payment_date|date:'Y-m-d'|default:'' }}">
-            </div>
-            <div>
-                <label class="form-label" for="id_payment_method">Payment Method</label>
-                <input type="text" name="payment_method" id="id_payment_method" class="form-input" value="{{ payment.payment_method|default:'' }}">
-            </div>
-            <div>
+                <input type="date" name="payment_date" id="id_payment_date" class="form-input" value="{% if payment %}{{ payment.payment_date|date:'Y-m-d' }}{% endif %}">
+              </div>
+
+              <template x-if="paymentMethod === 'bank_transfer' || paymentMethod === 'check'">
+                <div>
+                  <label class="form-label" for="id_bank_name">Bank Name <span class="text-red-500">*</span></label>
+                  <select name="bank_name" id="id_bank_name" class="form-input">
+                    <option value="">— Select Bank —</option>
+                    <option value="bdo" {% if payment.bank_name == 'bdo' %}selected{% endif %}>BDO</option>
+                    <option value="bpi" {% if payment.bank_name == 'bpi' %}selected{% endif %}>BPI</option>
+                    <option value="metrobank" {% if payment.bank_name == 'metrobank' %}selected{% endif %}>Metrobank</option>
+                    <option value="landbank" {% if payment.bank_name == 'landbank' %}selected{% endif %}>Landbank</option>
+                    <option value="other_bank" {% if payment.bank_name == 'other_bank' %}selected{% endif %}>Other Bank</option>
+                  </select>
+                </div>
+              </template>
+
+              <template x-if="paymentMethod === 'check'">
+                <div>
+                  <label class="form-label" for="id_reference_number">Check Number <span class="text-red-500">*</span></label>
+                  <input type="text" name="reference_number" id="id_reference_number" class="form-input" value="{{ payment.reference_number|default:'' }}">
+                </div>
+              </template>
+
+              <template x-if="paymentMethod === 'cash' || paymentMethod === 'gcash' || paymentMethod === 'maya' || paymentMethod === 'bank_transfer' || paymentMethod === 'other'">
+                <div>
+                  <label class="form-label" for="id_reference_number">Reference / OR #</label>
+                  <input type="text" name="reference_number" id="id_reference_number" class="form-input" placeholder="e.g. OR-12345" value="{{ payment.reference_number|default:'' }}">
+                </div>
+              </template>
+
+              <div class="md:col-span-2">
                 <label class="form-label" for="id_notes">Notes</label>
-                <textarea name="notes" id="id_notes" rows="3" class="form-input">{{ payment.notes|default:'' }}</textarea>
+                <textarea name="notes" id="id_notes" rows="3" class="form-input" placeholder="Optional notes...">{{ payment.notes|default:'' }}</textarea>
+              </div>
             </div>
-            <div class="flex items-center space-x-3 pt-2">
+            <div class="flex items-center space-x-3 pt-4 border-t border-gray-200">
                 <button type="submit" class="btn-primary">{% if payment %}Update{% else %}Create{% endif %} Payment</button>
                 <a href="{% url 'payment_list' %}" class="btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
 </div>
+<script>
+function paymentForm() {
+  return {
+    paymentMethod: '{{ payment.payment_method|default:"" }}',
+    amountDue: '{% if payment %}{{ payment.amount_due|floatformat:2|intcomma }}{% endif %}',
+    amountPaid: '{% if payment %}{{ payment.amount_paid|floatformat:2|intcomma }}{% endif %}',
+
+    formatAmount(field) {
+      let val = this[field];
+      val = val.replace(/[^0-9.]/g, '');
+      const parts = val.split('.');
+      if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+      if (parts.length === 2 && parts[1].length > 2) val = parts[0] + '.' + parts[1].slice(0, 2);
+      this[field] = val;
+    },
+
+    formatBlur(field) {
+      let raw = this[field].replace(/,/g, '');
+      const num = parseFloat(raw);
+      if (!isNaN(num) && raw.length > 0) {
+        this[field] = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      } else if (raw.length === 0) {
+        this[field] = '';
+      }
+    },
+
+    submitForm(event) {
+      const due = document.getElementById('id_amount_due');
+      const paid = document.getElementById('id_amount_paid');
+      due.value = due.value.replace(/,/g, '');
+      paid.value = paid.value.replace(/,/g, '');
+      return true;
+    }
+  }
+}
+</script>
 {% endblock %}

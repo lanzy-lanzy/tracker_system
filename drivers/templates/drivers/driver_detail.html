@@ -39,6 +39,10 @@
                     <p class="text-sm font-medium text-gray-800">{{ driver.full_name }}</p>
                 </div>
                 <div>
+                    <p class="form-label text-xs text-gray-500">Username</p>
+                    <p class="text-sm font-medium text-gray-800 font-mono">{{ driver.user.username|default:"—" }}</p>
+                </div>
+                <div>
                     <p class="form-label text-xs text-gray-500">Contact Number</p>
                     <p class="text-sm font-medium text-gray-800">{{ driver.contact_number }}</p>
                 </div>

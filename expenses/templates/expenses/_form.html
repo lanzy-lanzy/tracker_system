@@ -32,6 +32,7 @@
           <option value="fuel" {% if form_expense and form_expense.expense_type == 'fuel' %}selected{% endif %}>Fuel</option>
           <option value="toll" {% if form_expense and form_expense.expense_type == 'toll' %}selected{% endif %}>Toll</option>
           <option value="repair" {% if form_expense and form_expense.expense_type == 'repair' %}selected{% endif %}>Repair</option>
+          <option value="maintenance" {% if form_expense and form_expense.expense_type == 'maintenance' %}selected{% endif %}>Maintenance</option>
           <option value="allowance" {% if form_expense and form_expense.expense_type == 'allowance' %}selected{% endif %}>Driver Allowance</option>
           <option value="parking" {% if form_expense and form_expense.expense_type == 'parking' %}selected{% endif %}>Parking</option>
           <option value="other" {% if form_expense and form_expense.expense_type == 'other' %}selected{% endif %}>Other</option>

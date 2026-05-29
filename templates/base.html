@@ -102,12 +102,22 @@
             </div>
 
             <nav class="p-3 space-y-1">
+                {% if user.profile.role != 'driver' %}
                 <a href="{% url 'dashboard' %}"
                    class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'dashboard' %}active bg-white/10{% endif %}">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     <span>Dashboard</span>
                 </a>
+                {% endif %}
+                {% if user.profile.role == 'driver' %}
+                <a href="{% url 'driver_dashboard' %}"
+                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'driver_dashboard' %}active bg-white/10{% endif %}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                    <span>My Trips</span>
+                </a>
+                {% endif %}
 
+                {% if user.profile.role != 'driver' %}
                 <div x-data="{ open: {% if request.resolver_match.url_name in 'truck_list truck_create truck_detail truck_edit truck_delete truck_modal_create truck_modal_edit truck_modal_detail truck_modal_delete driver_list driver_create driver_detail driver_edit driver_delete driver_modal_create driver_modal_edit driver_modal_detail driver_modal_delete' %}true{% else %}false{% endif %} }">
                     <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'truck_list truck_create truck_detail truck_edit truck_delete truck_modal_create truck_modal_edit truck_modal_detail truck_modal_delete driver_list driver_create driver_detail driver_edit driver_delete driver_modal_create driver_modal_edit driver_modal_detail driver_modal_delete' %} active bg-white/10{% endif %}">
                         <div class="flex items-center space-x-3">
@@ -172,6 +182,7 @@
                         <a href="{% url 'profit_loss_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'profit_loss_report' %}active{% endif %}">Profit & Loss</a>
                     </div>
                 </div>
+                {% endif %}
 
                 {% if user.profile.role == 'admin' %}
                 <div class="pt-4">

@@ -31,6 +31,7 @@
         <thead class="table-header">
             <tr>
                 <th>Full Name</th>
+                <th>Username</th>
                 <th>Contact</th>
                 <th>License #</th>
                 <th>License Expiry</th>
@@ -43,6 +44,16 @@
             {% for driver in drivers %}
             <tr class="hover:bg-gray-50 transition">
                 <td class="table-cell font-medium text-[#541A1A]">{{ driver.full_name }}</td>
+                <td class="table-cell">
+                    {% if driver.user %}
+                    <span class="text-sm font-mono text-gray-700">{{ driver.user.username }}</span>
+                    {% if not driver.user.is_active %}
+                    <span class="badge bg-red-100 text-red-700 text-xs">Disabled</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="text-sm text-gray-400">—</span>
+                    {% endif %}
+                </td>
                 <td class="table-cell">{{ driver.contact_number }}</td>
                 <td class="table-cell font-mono text-sm">{{ driver.license_number }}</td>
                 <td class="table-cell">
@@ -79,7 +90,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="table-cell">
+                <td colspan="8" class="table-cell">
                     <div class="empty-state">
                         <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         <p class="text-gray-500 font-medium">No drivers registered yet</p>

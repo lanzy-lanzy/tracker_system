@@ -5,14 +5,21 @@
 {% block page_title %}Trip {{ trip.reference_number }}{% endblock %}
 
 {% block content %}
+{% if trip.is_overdue %}
+<div class="bg-red-100 border-l-4 border-red-600 text-red-800 p-4 mb-6 rounded flex items-center space-x-2">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+    <span class="font-medium">This trip is overdue — scheduled delivery was {{ trip.scheduled_delivery|date:"M d, Y H:i" }}.</span>
+</div>
+{% endif %}
 <div class="flex items-center justify-between mb-6">
     <div class="flex items-center space-x-3">
-        <a href="{% url 'trip_list' %}" class="text-gray-500 hover:text-[#810B38]">
+        <a href="{% if user.profile.role == 'driver' %}{% url 'driver_dashboard' %}{% else %}{% url 'trip_list' %}{% endif %}" class="text-gray-500 hover:text-[#810B38]">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
         </a>
         <h1 class="text-2xl font-bold text-[#541A1A]">{{ trip.reference_number }}</h1>
         {% include "trips/partials/trip_row.html" with trip=trip solo_badge=True only %}
     </div>
+    {% if user.profile.role != "driver" %}
     <div class="flex items-center space-x-2">
         <a href="{% url 'trip_edit' pk=trip.pk %}" class="btn-secondary inline-flex items-center space-x-1">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -23,7 +30,188 @@
             <span>Delete</span>
         </a>
     </div>
+    {% endif %}
 </div>
+
+{% if user.profile.role != "driver" %}
+<div class="card p-6 mb-6 border-l-4 border-[#810B38]">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-semibold text-[#541A1A]">Delivery Tracking</h2>
+        {% if trip.assigned_driver %}
+        <span class="text-sm text-gray-500">Driver: <strong class="text-gray-900">{{ trip.assigned_driver.full_name }}</strong> · {{ trip.assigned_driver.contact_number|default:"—" }}</span>
+        {% endif %}
+    </div>
+
+    {% with s=trip.status %}
+    {% if s == "cancelled" %}
+    <div class="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+        <span class="text-red-700 font-medium">This trip was cancelled.</span>
+    </div>
+    {% endif %}
+    <div class="grid grid-cols-5 gap-0 mb-6">
+        <div class="flex flex-col items-center relative">
+            {% if s == "pending" %}
+            <div class="w-10 h-10 rounded-full bg-amber-500 ring-4 ring-amber-200 flex items-center justify-center text-sm font-bold text-white">1</div>
+            <span class="text-xs mt-1.5 font-medium text-amber-600">Pending</span>
+            {% elif s == "scheduled" or s == "loading" or s == "in_transit" or s == "delivered" %}
+            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-sm font-bold text-white">✓</div>
+            <span class="text-xs mt-1.5 font-medium text-green-600">Pending</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-green-400 -z-10"></div>
+            {% else %}
+            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">1</div>
+            <span class="text-xs mt-1.5 font-medium text-gray-400">Pending</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% endif %}
+        </div>
+        <div class="flex flex-col items-center relative">
+            {% if s == "scheduled" %}
+            <div class="w-10 h-10 rounded-full bg-[#810B38] ring-4 ring-[#810B38]/20 flex items-center justify-center text-sm font-bold text-white">2</div>
+            <span class="text-xs mt-1.5 font-medium text-[#810B38]">Scheduled</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% elif s == "loading" or s == "in_transit" or s == "delivered" %}
+            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-sm font-bold text-white">✓</div>
+            <span class="text-xs mt-1.5 font-medium text-green-600">Scheduled</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-green-400 -z-10"></div>
+            {% elif s == "cancelled" %}
+            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold text-gray-500">2</div>
+            <span class="text-xs mt-1.5 font-medium text-gray-400">Scheduled</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% else %}
+            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">2</div>
+            <span class="text-xs mt-1.5 font-medium text-gray-400">Scheduled</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% endif %}
+        </div>
+        <div class="flex flex-col items-center relative">
+            {% if s == "loading" %}
+            <div class="w-10 h-10 rounded-full bg-amber-500 ring-4 ring-amber-200 flex items-center justify-center text-sm font-bold text-white">3</div>
+            <span class="text-xs mt-1.5 font-medium text-amber-600">Loading</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% elif s == "in_transit" or s == "delivered" %}
+            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-sm font-bold text-white">✓</div>
+            <span class="text-xs mt-1.5 font-medium text-green-600">Loading</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-green-400 -z-10"></div>
+            {% elif s == "cancelled" %}
+            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold text-gray-500">3</div>
+            <span class="text-xs mt-1.5 font-medium text-gray-400">Loading</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% else %}
+            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">3</div>
+            <span class="text-xs mt-1.5 font-medium text-gray-400">Loading</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% endif %}
+        </div>
+        <div class="flex flex-col items-center relative">
+            {% if s == "in_transit" %}
+            <div class="w-10 h-10 rounded-full bg-blue-500 ring-4 ring-blue-200 flex items-center justify-center text-sm font-bold text-white">4</div>
+            <span class="text-xs mt-1.5 font-medium text-blue-600">In Transit</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% elif s == "delivered" %}
+            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-sm font-bold text-white">✓</div>
+            <span class="text-xs mt-1.5 font-medium text-green-600">In Transit</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-green-400 -z-10"></div>
+            {% elif s == "cancelled" %}
+            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold text-gray-500">4</div>
+            <span class="text-xs mt-1.5 font-medium text-gray-400">In Transit</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% else %}
+            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">4</div>
+            <span class="text-xs mt-1.5 font-medium text-gray-400">In Transit</span>
+            <div class="absolute top-5 left-[60%] w-full h-0.5 bg-gray-200 -z-10"></div>
+            {% endif %}
+        </div>
+        <div class="flex flex-col items-center relative">
+            {% if s == "delivered" %}
+            <div class="w-10 h-10 rounded-full bg-green-500 ring-4 ring-green-200 flex items-center justify-center text-sm font-bold text-white">✓</div>
+            <span class="text-xs mt-1.5 font-medium text-green-600">Delivered</span>
+            {% elif s == "cancelled" %}
+            <div class="w-10 h-10 rounded-full bg-red-400 flex items-center justify-center text-sm font-bold text-white">✕</div>
+            <span class="text-xs mt-1.5 font-medium text-red-500">Cancelled</span>
+            {% else %}
+            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">5</div>
+            <span class="text-xs mt-1.5 font-medium text-gray-400">Delivered</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endwith %}
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-gray-50 rounded-lg p-4">
+            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Trip Times</h4>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Scheduled Pickup</span>
+                    <span class="font-medium text-gray-900">{{ trip.scheduled_pickup|date:"M d, H:i" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Actual Pickup</span>
+                    <span class="font-medium {% if trip.actual_pickup %}text-green-600{% else %}text-gray-400{% endif %}">{{ trip.actual_pickup|date:"M d, H:i"|default:"Not yet" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Scheduled Delivery</span>
+                    <span class="font-medium text-gray-900">{{ trip.scheduled_delivery|date:"M d, H:i" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Actual Delivery</span>
+                    <span class="font-medium {% if trip.actual_delivery %}text-green-600{% else %}text-gray-400{% endif %}">{{ trip.actual_delivery|date:"M d, H:i"|default:"Not yet" }}</span>
+                </div>
+            </div>
+        </div>
+        {% with driver=trip.assigned_driver %}
+        <div class="bg-gray-50 rounded-lg p-4">
+            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Driver Info</h4>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Name</span>
+                    <span class="font-medium text-gray-900">{{ driver.full_name|default:"—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Contact</span>
+                    <span class="font-medium text-gray-900">{{ driver.contact_number|default:"—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">License</span>
+                    <span class="font-medium {% if driver and driver.is_license_expired %}text-red-600{% else %}text-gray-900{% endif %}">{{ driver.license_number|default:"—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Status</span>
+                    <span class="font-medium">{{ driver.get_employment_status_display|default:"—" }}</span>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+        <div class="bg-gray-50 rounded-lg p-4">
+            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Truck Info</h4>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Plate #</span>
+                    <span class="font-medium text-gray-900">{{ trip.assigned_truck.plate_number|default:"—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Type</span>
+                    <span class="font-medium text-gray-900">{{ trip.assigned_truck.get_truck_type_display|default:"—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Truck Status</span>
+                    <span class="font-medium">{{ trip.assigned_truck.get_status_display|default:"—" }}</span>
+                </div>
+                {% if trip.delivery_proof %}
+                <div class="pt-2 mt-2 border-t border-gray-200">
+                    <a href="{{ trip.delivery_proof.url }}" target="_blank" class="text-[#810B38] hover:underline font-medium inline-flex items-center space-x-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>View Proof of Delivery</span>
+                    </a>
+                </div>
+                {% else %}
+                <div class="pt-2 mt-2 border-t border-gray-200">
+                    <span class="text-gray-400 text-xs">No proof of delivery uploaded yet</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     <div class="lg:col-span-2 space-y-6">
@@ -72,7 +260,7 @@
                 </div>
                 <div>
                     <span class="form-label">Created By</span>
-                    <p class="text-gray-900">{{ trip.created_by.get_full_name|default:trip.created_by.username|default:"—" }}</p>
+                    <p class="text-gray-900">{% if trip.created_by %}{{ trip.created_by.get_full_name|default:trip.created_by.username }}{% else %}—{% endif %}</p>
                 </div>
                 <div>
                     <span class="form-label">Created At</span>
@@ -138,15 +326,17 @@
         <div class="card p-6">
             <h2 class="text-lg font-semibold text-[#541A1A] mb-4">Trip Timeline</h2>
             <div class="space-y-4">
-                {% with history=trip.statushistory_set.all %}
-                {% if history %}
+                {% if status_history %}
                 <div class="relative">
-                    {% for entry in history %}
+                    {% for entry in status_history %}
                     <div class="flex items-start space-x-3 pb-4 relative">
                         <div class="flex-shrink-0 w-3 h-3 rounded-full mt-1.5 {% if forloop.first %}bg-[#810B38]{% else %}bg-gray-300{% endif %}"></div>
                         <div>
                             <p class="text-sm font-medium text-gray-900">{{ entry.get_status_display }}</p>
                             <p class="text-xs text-gray-500">{{ entry.timestamp|date:"M d, Y H:i" }}</p>
+                            {% if entry.changed_by %}
+                            <p class="text-xs text-gray-400">by {{ entry.changed_by.get_full_name|default:entry.changed_by.username }}</p>
+                            {% endif %}
                             {% if entry.remarks %}
                             <p class="text-sm text-gray-600 mt-1">{{ entry.remarks }}</p>
                             {% endif %}
@@ -159,7 +349,6 @@
                     <p>No status history recorded yet.</p>
                 </div>
                 {% endif %}
-                {% endwith %}
             </div>
         </div>
     </div>
@@ -200,7 +389,7 @@
                     Mark Delivered
                 </button>
                 {% endif %}
-                {% if trip.status != "delivered" and trip.status != "cancelled" %}
+                {% if trip.status != "delivered" and trip.status != "cancelled" and user.profile.role != "driver" %}
                 <button hx-post="{% url 'trip_update_status' pk=trip.pk status='cancelled' %}"
                         hx-target="#status-badge-container"
                         hx-indicator="#status-indicator"

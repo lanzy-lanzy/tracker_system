@@ -12,8 +12,7 @@
 {% else %}
 <tr class="hover:bg-gray-50">
     <td class="table-cell font-medium">
-        <button hx-get="{% url 'trip_modal_detail' pk=trip.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
-                class="text-[#810B38] hover:underline">{{ trip.reference_number }}</button>
+        <a href="{% url 'trip_detail' pk=trip.pk %}" class="text-[#810B38] hover:underline">{{ trip.reference_number }}</a>
     </td>
     <td class="table-cell">{{ trip.client.client_name }}</td>
     <td class="table-cell">{{ trip.assigned_truck.plate_number|default:"—" }}</td>
@@ -32,13 +31,17 @@
             {{ trip.get_status_display }}
         </span>
     </td>
-    <td class="table-cell">{{ trip.scheduled_delivery|date:"M d, Y" }}</td>
+    <td class="table-cell">
+        {{ trip.scheduled_delivery|date:"M d, Y" }}
+        {% if trip.is_overdue %}
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 ml-1">OVERDUE</span>
+        {% endif %}
+    </td>
     <td class="table-cell">
         <div class="flex items-center space-x-2">
-            <button hx-get="{% url 'trip_modal_detail' pk=trip.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
-                    class="text-[#810B38] hover:text-[#5C0828]" title="View">
+            <a href="{% url 'trip_detail' pk=trip.pk %}" class="text-[#810B38] hover:text-[#5C0828]" title="View">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-            </button>
+            </a>
             <button hx-get="{% url 'trip_modal_edit' pk=trip.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
                     class="text-[#d97706] hover:text-[#b45309]" title="Edit">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>

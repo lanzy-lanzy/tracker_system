@@ -10,13 +10,24 @@ class Payment(models.Model):
         ("paid", "Paid"),
     ]
 
+    METHOD_CHOICES = [
+        ("cash", "Cash"),
+        ("bank_transfer", "Bank Transfer"),
+        ("check", "Check"),
+        ("gcash", "G-Cash"),
+        ("maya", "Maya"),
+        ("other", "Other"),
+    ]
+
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="payments")
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="payments")
     amount_due = models.DecimalField(max_digits=12, decimal_places=2)
     amount_paid = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="unpaid")
     payment_date = models.DateField(blank=True, null=True)
-    payment_method = models.CharField(max_length=100, blank=True, null=True)
+    payment_method = models.CharField(max_length=20, choices=METHOD_CHOICES, blank=True, null=True)
+    reference_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Reference / OR #")
+    bank_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Bank Name")
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

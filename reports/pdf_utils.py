@@ -76,6 +76,150 @@ stat_label_style = ParagraphStyle(
 
 PAGE_WIDTH, PAGE_HEIGHT = landscape(A4)
 
+# ── Professional portrait theme ──────────────────────────────────
+DARK_GRAY = HexColor("#1F2937")
+MID_GRAY = HexColor("#4B5563")
+BORDER_GRAY = HexColor("#D1D5DB")
+LIGHT_BG = HexColor("#F3F4F6")
+WHITE = HexColor("#FFFFFF")
+PAGE_W_P, PAGE_H_P = A4
+PORTRAIT_MARGIN = 52
+
+FONT = None
+FONT_BOLD = None
+
+
+def _register_portrait_font():
+    global FONT, FONT_BOLD
+    if FONT is not None:
+        return FONT, FONT_BOLD
+    try:
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        pdfmetrics.registerFont(TTFont("ArialH", "arial.ttf"))
+        pdfmetrics.registerFont(TTFont("ArialHB", "arialbd.ttf"))
+        FONT = "ArialH"
+        FONT_BOLD = "ArialHB"
+    except Exception:
+        try:
+            from reportlab.pdfbase import pdfmetrics
+            from reportlab.pdfbase.ttfonts import TTFont
+            font_path = r"C:\Windows\Fonts\segoeui.ttf"
+            bold_path = r"C:\Windows\Fonts\segoeuib.ttf"
+            pdfmetrics.registerFont(TTFont("SegoeUI", font_path))
+            pdfmetrics.registerFont(TTFont("SegoeUIB", bold_path))
+            FONT = "SegoeUI"
+            FONT_BOLD = "SegoeUIB"
+        except Exception:
+            FONT = "Helvetica"
+            FONT_BOLD = "Helvetica-Bold"
+    return FONT, FONT_BOLD
+
+
+def _portrait_header_footer(canvas, doc, report_name="Report"):
+    canvas.saveState()
+    canvas.setStrokeColor(BORDER_GRAY)
+    canvas.setLineWidth(0.5)
+    canvas.line(PORTRAIT_MARGIN, 36, PAGE_W_P - PORTRAIT_MARGIN, 36)
+    fnt, _ = _register_portrait_font()
+    canvas.setFont(fnt, 7)
+    canvas.setFillColor(MID_GRAY)
+    canvas.drawString(PORTRAIT_MARGIN, 24, f"Trucking Tracker — {report_name}")
+    canvas.drawRightString(PAGE_W_P - PORTRAIT_MARGIN, 24, f"Page {doc.page}")
+    canvas.restoreState()
+
+
+def make_portrait_pdf_response(filename, elements, report_name="Report"):
+    buf = BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=A4,
+        topMargin=PORTRAIT_MARGIN, bottomMargin=PORTRAIT_MARGIN,
+        leftMargin=PORTRAIT_MARGIN, rightMargin=PORTRAIT_MARGIN,
+    )
+    frame = Frame(
+        PORTRAIT_MARGIN, PORTRAIT_MARGIN,
+        PAGE_W_P - PORTRAIT_MARGIN * 2, PAGE_H_P - PORTRAIT_MARGIN * 2,
+        id="normal",
+    )
+    cb = lambda c, d: _portrait_header_footer(c, d, report_name)
+    doc.addPageTemplates([PageTemplate(id="main", frames=frame, onPage=cb)])
+    doc.build(elements)
+    buf.seek(0)
+    resp = HttpResponse(buf, content_type="application/pdf")
+    resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return resp
+
+
+def portrait_style_sheet():
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    f, fb = _register_portrait_font()
+    styles = getSampleStyleSheet()
+    return {
+        "title": ParagraphStyle("T", parent=styles["Title"], fontSize=18, textColor=DARK_GRAY, fontName=fb, spaceAfter=2, leading=22),
+        "meta": ParagraphStyle("M", parent=styles["Normal"], fontSize=8, textColor=MID_GRAY, fontName=f, alignment=TA_RIGHT, leading=10, spaceAfter=14),
+        "section": ParagraphStyle("S", parent=styles["Normal"], fontSize=10, textColor=DARK_GRAY, fontName=fb, leading=13),
+        "section_total": ParagraphStyle("ST", parent=styles["Normal"], fontSize=10, textColor=MID_GRAY, fontName=fb, alignment=TA_RIGHT, leading=13),
+        "grand": ParagraphStyle("GT", parent=styles["Normal"], fontSize=10, textColor=DARK_GRAY, fontName=fb, alignment=TA_RIGHT, leading=14, spaceBefore=4),
+        "th": ParagraphStyle("TH", parent=styles["Normal"], fontSize=7.5, textColor=WHITE, fontName=fb, alignment=TA_CENTER, leading=10),
+        "tc": ParagraphStyle("TC", parent=styles["Normal"], fontSize=7.5, textColor=DARK_GRAY, fontName=f, leading=10),
+        "tcc": ParagraphStyle("TCC", parent=styles["Normal"], fontSize=7.5, textColor=DARK_GRAY, fontName=f, alignment=TA_CENTER, leading=10),
+        "tcr": ParagraphStyle("TCR", parent=styles["Normal"], fontSize=7.5, textColor=DARK_GRAY, fontName=f, alignment=TA_RIGHT, leading=10),
+        "stat_label": ParagraphStyle("SL", parent=styles["Normal"], fontSize=8, textColor=MID_GRAY, fontName=f, leading=10),
+        "stat_value": ParagraphStyle("SV", parent=styles["Normal"], fontSize=14, textColor=DARK_GRAY, fontName=fb, alignment=TA_RIGHT, leading=17),
+    }
+
+
+def portrait_summary_table(s, value, label="Total"):
+    data = [[Paragraph(label, s["stat_label"]), Paragraph(f"₱{value:,.2f}" if isinstance(value, (int, float)) else str(value), s["stat_value"])]]
+    tw = PAGE_W_P - PORTRAIT_MARGIN * 2
+    tbl = Table(data, colWidths=[tw * 0.3, tw * 0.7])
+    tbl.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.5, BORDER_GRAY),
+        ("BACKGROUND", (0, 0), (-1, -1), LIGHT_BG),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+        ("LEFTPADDING", (0, 0), (-1, -1), 14),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 14),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    return tbl
+
+
+def portrait_build_table(s, headers, rows, col_widths=None):
+    data = [[Paragraph(h, s["th"]) for h in headers]]
+    data.extend(rows)
+    tw = PAGE_W_P - PORTRAIT_MARGIN * 2
+    cw = col_widths or [tw / len(headers)] * len(headers)
+    t = Table(data, colWidths=cw, repeatRows=1, hAlign="LEFT")
+    cmds = [
+        ("BACKGROUND", (0, 0), (-1, 0), DARK_GRAY),
+        ("TEXTCOLOR", (0, 0), (-1, 0), WHITE),
+        ("GRID", (0, 0), (-1, -1), 0.3, BORDER_GRAY),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, 0), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 1), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
+    ]
+    for i in range(1, len(data)):
+        if i % 2 == 0:
+            cmds.append(("BACKGROUND", (0, i), (-1, i), HexColor("#F9FAFB")))
+    t.setStyle(TableStyle(cmds))
+    return t
+
+
+def portrait_title_block(s, elements, title, period=None):
+    from datetime import datetime
+    elements.append(Paragraph(title, s["title"]))
+    parts = []
+    if period:
+        parts.append(f"Period: {period}")
+    parts.append(f"Generated {datetime.now().strftime('%B %d, %Y')}")
+    elements.append(Paragraph(" • ".join(parts), s["meta"]))
+    elements.append(HRFlowable(width="100%", thickness=1.5, color=DARK_GRAY, spaceAfter=10, spaceBefore=0))
+
 
 def _header_footer(canvas, doc):
     canvas.saveState()

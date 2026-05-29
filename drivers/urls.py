@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path("", views.driver_list_view, name="driver_list"),
+    path("dashboard/", views.driver_dashboard_view, name="driver_dashboard"),
     path("create/", views.driver_create_view, name="driver_create"),
     path("<int:pk>/", views.driver_detail_view, name="driver_detail"),
     path("<int:pk>/edit/", views.driver_edit_view, name="driver_edit"),

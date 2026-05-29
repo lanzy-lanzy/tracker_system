@@ -1,8 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db.models import Count, Sum
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
+from core.utils import is_driver
 from trucks.models import Truck
 from drivers.models import Driver
 from trips.models import Trip
@@ -15,6 +17,8 @@ from notifications.models import Notification
 @ratelimit(key="ip", rate="20/m", method="GET", block=True)
 @login_required
 def dashboard_view(request):
+    if is_driver(request.user):
+        return redirect("driver_dashboard")
     today = timezone.now().date()
     context = {
         "total_trucks": Truck.objects.count(),

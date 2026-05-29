@@ -1,23 +1,23 @@
 {% load humanize %}
-<div class="p-6" x-data="{ submitting: false }">
+<div class="p-6" x-data="paymentForm()">
   <div class="flex items-center mb-6">
     <h3 class="text-xl font-bold text-[#541A1A]">{% if form_payment %}Edit{% else %}Add New{% endif %} Payment</h3>
   </div>
   {% if error %}<div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{{ error }}</div>{% endif %}
-  <form hx-post="{{ action_url }}" hx-target="#modal-content" hx-swap="innerHTML" @submit="submitting = true">
+  <form hx-post="{{ action_url }}" hx-target="#modal-content" hx-swap="innerHTML" @submit="submitForm($event)">
     {% csrf_token %}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="form-label" for="trip">Trip</label>
+        <label class="form-label" for="trip">Trip <span class="text-red-500">*</span></label>
         <select name="trip" id="trip" class="form-input" required>
           <option value="">— Select Trip —</option>
           {% for trip in trips %}
-          <option value="{{ trip.pk }}" {% if form_payment and form_payment.trip_id == trip.pk %}selected{% endif %}>{{ trip.reference_number }}</option>
+          <option value="{{ trip.pk }}" {% if form_payment and form_payment.trip_id == trip.pk %}selected{% endif %}>{{ trip.reference_number }} — {{ trip.client.client_name }}</option>
           {% endfor %}
         </select>
       </div>
       <div>
-        <label class="form-label" for="client">Client</label>
+        <label class="form-label" for="client">Client <span class="text-red-500">*</span></label>
         <select name="client" id="client" class="form-input" required>
           <option value="">— Select Client —</option>
           {% for client in clients %}
@@ -26,32 +26,117 @@
         </select>
       </div>
       <div>
-        <label class="form-label" for="amount_due">Amount Due</label>
-        <input type="number" name="amount_due" id="amount_due" step="0.01" min="0" class="form-input" required value="{{ form_payment.amount_due|default:'' }}">
+        <label class="form-label" for="amount_due">Amount Due <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₱</span>
+          <input type="text" name="amount_due" id="amount_due" x-model="amountDue" @input="formatAmount('amountDue')" @blur="formatBlur('amountDue')" class="form-input pl-8" required value="{% if form_payment %}{{ form_payment.amount_due|floatformat:2|intcomma }}{% endif %}">
+        </div>
       </div>
       <div>
-        <label class="form-label" for="amount_paid">Amount Paid</label>
-        <input type="number" name="amount_paid" id="amount_paid" step="0.01" min="0" class="form-input" required value="{{ form_payment.amount_paid|default:'' }}">
+        <label class="form-label" for="amount_paid">Amount Paid <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₱</span>
+          <input type="text" name="amount_paid" id="amount_paid" x-model="amountPaid" @input="formatAmount('amountPaid')" @blur="formatBlur('amountPaid')" class="form-input pl-8" required value="{% if form_payment %}{{ form_payment.amount_paid|floatformat:2|intcomma }}{% endif %}">
+        </div>
+      </div>
+      <div>
+        <label class="form-label" for="payment_method">Payment Method <span class="text-red-500">*</span></label>
+        <select name="payment_method" id="payment_method" x-model="paymentMethod" class="form-input" required>
+          <option value="">— Select Method —</option>
+          <option value="cash" {% if form_payment.payment_method == 'cash' %}selected{% endif %}>Cash</option>
+          <option value="bank_transfer" {% if form_payment.payment_method == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
+          <option value="check" {% if form_payment.payment_method == 'check' %}selected{% endif %}>Check</option>
+          <option value="gcash" {% if form_payment.payment_method == 'gcash' %}selected{% endif %}>G-Cash</option>
+          <option value="maya" {% if form_payment.payment_method == 'maya' %}selected{% endif %}>Maya</option>
+          <option value="other" {% if form_payment.payment_method == 'other' %}selected{% endif %}>Other</option>
+        </select>
       </div>
       <div>
         <label class="form-label" for="payment_date">Payment Date</label>
         <input type="date" name="payment_date" id="payment_date" class="form-input" value="{% if form_payment %}{{ form_payment.payment_date|date:'Y-m-d' }}{% endif %}">
       </div>
-      <div>
-        <label class="form-label" for="payment_method">Payment Method</label>
-        <input type="text" name="payment_method" id="payment_method" class="form-input" value="{{ form_payment.payment_method|default:'' }}">
-      </div>
+
+      <template x-if="paymentMethod === 'bank_transfer' || paymentMethod === 'check'">
+        <div>
+          <label class="form-label" for="bank_name">Bank Name <span class="text-red-500">*</span></label>
+          <select name="bank_name" id="bank_name" class="form-input">
+            <option value="">— Select Bank —</option>
+            <option value="bdo" {% if form_payment.bank_name == 'bdo' %}selected{% endif %}>BDO</option>
+            <option value="bpi" {% if form_payment.bank_name == 'bpi' %}selected{% endif %}>BPI</option>
+            <option value="metrobank" {% if form_payment.bank_name == 'metrobank' %}selected{% endif %}>Metrobank</option>
+            <option value="landbank" {% if form_payment.bank_name == 'landbank' %}selected{% endif %}>Landbank</option>
+            <option value="pnb" {% if form_payment.bank_name == 'pnb' %}selected{% endif %}>PNB</option>
+            <option value="unionbank" {% if form_payment.bank_name == 'unionbank' %}selected{% endif %}>Unionbank</option>
+            <option value="security_bank" {% if form_payment.bank_name == 'security_bank' %}selected{% endif %}>Security Bank</option>
+            <option value="chinabank" {% if form_payment.bank_name == 'chinabank' %}selected{% endif %}>China Bank</option>
+            <option value="other_bank" {% if form_payment.bank_name == 'other_bank' %}selected{% endif %}>Other Bank</option>
+          </select>
+        </div>
+      </template>
+
+      <template x-if="paymentMethod === 'check'">
+        <div>
+          <label class="form-label" for="reference_number">Check Number <span class="text-red-500">*</span></label>
+          <input type="text" name="reference_number" id="reference_number" class="form-input" value="{{ form_payment.reference_number|default:'' }}">
+        </div>
+      </template>
+
+      <template x-if="paymentMethod === 'cash' || paymentMethod === 'gcash' || paymentMethod === 'maya' || paymentMethod === 'bank_transfer' || paymentMethod === 'other'">
+        <div>
+          <label class="form-label" for="reference_number">Reference / OR #</label>
+          <input type="text" name="reference_number" id="reference_number" class="form-input" placeholder="e.g. OR-12345, Ref-98765" value="{{ form_payment.reference_number|default:'' }}">
+        </div>
+      </template>
+
       <div class="md:col-span-2">
         <label class="form-label" for="notes">Notes</label>
-        <textarea name="notes" id="notes" rows="3" class="form-input">{{ form_payment.notes|default:'' }}</textarea>
+        <textarea name="notes" id="notes" rows="3" class="form-input" placeholder="Optional notes about this payment...">{{ form_payment.notes|default:'' }}</textarea>
       </div>
     </div>
     <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
       <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Cancel</button>
       <button type="submit" class="btn-primary" :disabled="submitting">
-        <span x-show="!submitting">Save</span>
+        <span x-show="!submitting">{% if form_payment %}Update{% else %}Save{% endif %}</span>
         <span x-show="submitting">Saving...</span>
       </button>
     </div>
   </form>
 </div>
+<script>
+function paymentForm() {
+  return {
+    submitting: false,
+    paymentMethod: '{{ form_payment.payment_method|default:"" }}',
+    amountDue: '{% if form_payment %}{{ form_payment.amount_due|floatformat:2|intcomma }}{% endif %}',
+    amountPaid: '{% if form_payment %}{{ form_payment.amount_paid|floatformat:2|intcomma }}{% endif %}',
+
+    formatAmount(field) {
+      let val = this[field];
+      val = val.replace(/[^0-9.]/g, '');
+      const parts = val.split('.');
+      if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+      if (parts.length === 2 && parts[1].length > 2) val = parts[0] + '.' + parts[1].slice(0, 2);
+      this[field] = val;
+    },
+
+    formatBlur(field) {
+      let raw = this[field].replace(/,/g, '');
+      const num = parseFloat(raw);
+      if (!isNaN(num) && raw.length > 0) {
+        this[field] = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      } else if (raw.length === 0) {
+        this[field] = '';
+      }
+    },
+
+    submitForm(event) {
+      this.submitting = true;
+      const due = document.getElementById('amount_due');
+      const paid = document.getElementById('amount_paid');
+      due.value = due.value.replace(/,/g, '');
+      paid.value = paid.value.replace(/,/g, '');
+      return true;
+    }
+  }
+}
+</script>

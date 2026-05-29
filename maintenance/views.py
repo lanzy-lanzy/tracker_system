@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def maintenance_list_view(request):
     records = Maintenance.objects.all().select_related("truck")
     return render(request, "maintenance/maintenance_list.html", {"records": records})

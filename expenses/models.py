@@ -9,6 +9,7 @@ class Expense(models.Model):
         ("fuel", "Fuel"),
         ("toll", "Toll"),
         ("repair", "Repair"),
+        ("maintenance", "Maintenance"),
         ("allowance", "Driver Allowance"),
         ("parking", "Parking"),
         ("other", "Other"),
@@ -22,6 +23,10 @@ class Expense(models.Model):
     receipt = models.ImageField(
         upload_to="receipts/", blank=True, null=True,
         validators=[FileExtensionValidator(["jpg", "jpeg", "png", "pdf"])],
+    )
+    maintenance_record = models.OneToOneField(
+        "maintenance.Maintenance", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="expense_record",
     )
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

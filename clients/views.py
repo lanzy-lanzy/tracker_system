@@ -11,6 +11,7 @@ from payments.models import Payment
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def client_list_view(request):
     clients = Client.objects.all()
     return render(request, "clients/client_list.html", {"clients": clients})

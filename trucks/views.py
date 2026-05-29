@@ -1,17 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count
-from django.http import HttpResponse
 from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
+from django.http import HttpResponse
 from .models import Truck
 from core.decorators import role_required
+from core.utils import is_admin_or_dispatcher
 from maintenance.models import Maintenance
 from trips.models import Trip
 
 
 @login_required
+@role_required("admin", "dispatcher")
 def truck_list_view(request):
     trucks = Truck.objects.all()
     return render(request, "trucks/truck_list.html", {"trucks": trucks})

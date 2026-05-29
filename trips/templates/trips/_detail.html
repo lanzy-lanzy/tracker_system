@@ -2,6 +2,105 @@
 <div class="relative">
   <div class="h-1.5 bg-gradient-to-r from-[#810B38] to-[#541A1A] rounded-t-2xl"></div>
   <div class="p-6">
+    {% if user.profile.role != "driver" %}
+    <div class="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-100">
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Delivery Tracking</h4>
+        {% if trip.assigned_driver %}
+        <span class="text-xs text-gray-500">{{ trip.assigned_driver.full_name }} · {{ trip.assigned_driver.contact_number|default:"—" }}</span>
+        {% endif %}
+      </div>
+      {% with s=trip.status %}
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-0 flex-1">
+          <div class="flex flex-col items-center" style="width:20%">
+            {% if s == "pending" %}
+            <div class="w-7 h-7 rounded-full bg-amber-500 ring-2 ring-amber-200 flex items-center justify-center text-xs font-bold text-white">1</div>
+            {% elif s == "scheduled" or s == "loading" or s == "in_transit" or s == "delivered" %}
+            <div class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center text-xs font-bold text-white">✓</div>
+            {% else %}
+            <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">1</div>
+            {% endif %}
+            <span class="text-[10px] mt-1 {% if s == 'pending' %}text-amber-600 font-medium{% elif s == 'scheduled' or s == 'loading' or s == 'in_transit' or s == 'delivered' %}text-green-600{% else %}text-gray-400{% endif %}">Pending</span>
+          </div>
+          <div class="h-0.5 flex-1 {% if s == 'scheduled' or s == 'loading' or s == 'in_transit' or s == 'delivered' %}bg-green-400{% else %}bg-gray-200{% endif %} -mt-4"></div>
+          <div class="flex flex-col items-center" style="width:20%">
+            {% if s == "scheduled" %}
+            <div class="w-7 h-7 rounded-full bg-[#810B38] ring-2 ring-[#810B38]/20 flex items-center justify-center text-xs font-bold text-white">2</div>
+            {% elif s == "loading" or s == "in_transit" or s == "delivered" %}
+            <div class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center text-xs font-bold text-white">✓</div>
+            {% elif s == "cancelled" %}
+            <div class="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-500">2</div>
+            {% else %}
+            <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">2</div>
+            {% endif %}
+            <span class="text-[10px] mt-1 {% if s == 'scheduled' %}text-[#810B38] font-medium{% elif s == 'loading' or s == 'in_transit' or s == 'delivered' %}text-green-600{% else %}text-gray-400{% endif %}">Scheduled</span>
+          </div>
+          <div class="h-0.5 flex-1 {% if s == 'loading' or s == 'in_transit' or s == 'delivered' %}bg-green-400{% else %}bg-gray-200{% endif %} -mt-4"></div>
+          <div class="flex flex-col items-center" style="width:20%">
+            {% if s == "loading" %}
+            <div class="w-7 h-7 rounded-full bg-amber-500 ring-2 ring-amber-200 flex items-center justify-center text-xs font-bold text-white">3</div>
+            {% elif s == "in_transit" or s == "delivered" %}
+            <div class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center text-xs font-bold text-white">✓</div>
+            {% elif s == "cancelled" %}
+            <div class="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-500">3</div>
+            {% else %}
+            <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">3</div>
+            {% endif %}
+            <span class="text-[10px] mt-1 {% if s == 'loading' %}text-amber-600 font-medium{% elif s == 'in_transit' or s == 'delivered' %}text-green-600{% else %}text-gray-400{% endif %}">Loading</span>
+          </div>
+          <div class="h-0.5 flex-1 {% if s == 'in_transit' or s == 'delivered' %}bg-green-400{% else %}bg-gray-200{% endif %} -mt-4"></div>
+          <div class="flex flex-col items-center" style="width:20%">
+            {% if s == "in_transit" %}
+            <div class="w-7 h-7 rounded-full bg-blue-500 ring-2 ring-blue-200 flex items-center justify-center text-xs font-bold text-white">4</div>
+            {% elif s == "delivered" %}
+            <div class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center text-xs font-bold text-white">✓</div>
+            {% elif s == "cancelled" %}
+            <div class="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-500">4</div>
+            {% else %}
+            <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">4</div>
+            {% endif %}
+            <span class="text-[10px] mt-1 {% if s == 'in_transit' %}text-blue-600 font-medium{% elif s == 'delivered' %}text-green-600{% else %}text-gray-400{% endif %}">In Transit</span>
+          </div>
+          <div class="h-0.5 flex-1 {% if s == 'delivered' %}bg-green-400{% else %}bg-gray-200{% endif %} -mt-4"></div>
+          <div class="flex flex-col items-center" style="width:20%">
+            {% if s == "delivered" %}
+            <div class="w-7 h-7 rounded-full bg-green-500 ring-2 ring-green-200 flex items-center justify-center text-xs font-bold text-white">✓</div>
+            {% elif s == "cancelled" %}
+            <div class="w-7 h-7 rounded-full bg-red-400 flex items-center justify-center text-xs font-bold text-white">✕</div>
+            {% else %}
+            <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">5</div>
+            {% endif %}
+            <span class="text-[10px] mt-1 {% if s == 'delivered' %}text-green-600 font-medium{% elif s == 'cancelled' %}text-red-500 font-medium{% else %}text-gray-400{% endif %}">{% if s == "cancelled" %}Cancelled{% else %}Delivered{% endif %}</span>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      <div class="grid grid-cols-3 gap-3 text-xs">
+        <div>
+          <span class="text-gray-400">Pickup</span>
+          <p class="font-medium text-gray-700">{{ trip.actual_pickup|date:"M d, H:i"|default:"—" }}</p>
+        </div>
+        <div>
+          <span class="text-gray-400">Sched Delivery</span>
+          <p class="font-medium text-gray-700">{{ trip.scheduled_delivery|date:"M d, H:i" }}</p>
+        </div>
+        <div>
+          <span class="text-gray-400">Actual Delivery</span>
+          <p class="font-medium {% if trip.actual_delivery %}text-green-600{% else %}text-gray-400{% endif %}">{{ trip.actual_delivery|date:"M d, H:i"|default:"Not yet" }}</p>
+        </div>
+      </div>
+      <div class="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between text-xs">
+        <span class="text-gray-400">Truck: <strong class="text-gray-700">{{ trip.assigned_truck.plate_number|default:"—" }}</strong></span>
+        {% if trip.delivery_proof %}
+        <a href="{{ trip.delivery_proof.url }}" target="_blank" class="text-[#810B38] hover:underline font-medium">View Proof</a>
+        {% else %}
+        <span class="text-gray-400">No proof uploaded</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
     <div class="flex items-start justify-between mb-6">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-[#810B38]/10 flex items-center justify-center flex-shrink-0">

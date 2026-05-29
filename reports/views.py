@@ -1,7 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
+from core.utils import is_driver
 from trips.models import Trip
 from trucks.models import Truck
 from drivers.models import Driver
@@ -10,13 +12,13 @@ from expenses.models import Expense
 from payments.models import Payment
 from clients.models import Client
 
-from reportlab.lib.enums import TA_RIGHT
-from reportlab.platypus import Paragraph, Spacer, Table
 from reportlab.lib.colors import HexColor
+from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, HRFlowable
+from reportlab.lib.styles import ParagraphStyle
 from .pdf_utils import (
-    make_pdf_response, add_title, _build_table, _stat_block,
-    styles, table_cell_style, table_cell_center, table_cell_right,
-    PRIMARY, DARK, GREEN, RED, ParagraphStyle,
+    portrait_style_sheet, portrait_summary_table, portrait_build_table,
+    portrait_title_block, make_portrait_pdf_response,
+    DARK_GRAY, MID_GRAY, BORDER_GRAY, WHITE,
 )
 
 
@@ -38,23 +40,11 @@ def _range_str(start, end):
     return f"{_fmt_date(start)} - {_fmt_date(end)}"
 
 
-def _rows_for_trips(trips):
-    rows = []
-    for t in trips:
-        rows.append([
-            Paragraph(t.reference_number or "-", table_cell_style),
-            Paragraph(t.client.client_name if t.client else "-", table_cell_style),
-            Paragraph(t.assigned_driver.full_name if t.assigned_driver else "-", table_cell_style),
-            Paragraph(t.pickup_location or "-", table_cell_style),
-            Paragraph(t.dropoff_location or "-", table_cell_style),
-            Paragraph(t.get_status_display(), table_cell_center),
-            Paragraph(_fmt_date(t.scheduled_delivery) if t.scheduled_delivery else "-", table_cell_center),
-        ])
-    return rows
-
-
 @login_required
 def report_dashboard_view(request):
+    if is_driver(request.user):
+        messages.error(request, "Access denied.")
+        return redirect("dashboard")
     return render(request, "reports/report_dashboard.html")
 
 
@@ -162,7 +152,22 @@ def profit_loss_report(request):
     })
 
 
-# --- PDF views ---
+# ── PDF views (professional portrait theme) ─────────────────────
+
+def _pdf_rows_for_trips(s, trips):
+    rows = []
+    for t in trips:
+        rows.append([
+            Paragraph(t.reference_number or "-", s["tc"]),
+            Paragraph(t.client.client_name if t.client else "-", s["tc"]),
+            Paragraph(t.assigned_driver.full_name if t.assigned_driver else "-", s["tc"]),
+            Paragraph(t.pickup_location or "-", s["tc"]),
+            Paragraph(t.dropoff_location or "-", s["tc"]),
+            Paragraph(t.get_status_display(), s["tcc"]),
+            Paragraph(_fmt_date(t.scheduled_delivery) if t.scheduled_delivery else "-", s["tcc"]),
+        ])
+    return rows
+
 
 @login_required
 def daily_trip_pdf(request):
@@ -171,18 +176,16 @@ def daily_trip_pdf(request):
     status_filter = request.GET.get("status", "")
     if status_filter:
         trips = trips.filter(status=status_filter)
+    s = portrait_style_sheet()
     elements = []
-    add_title(elements, "Daily Trip Report", date_range=_range_str(start, end))
-    elements.append(Paragraph(f"<b>Total Trips:</b> {trips.count()}", table_cell_style))
-    elements.append(Spacer(1, 8))
-    headers = ["Ref#", "Client", "Driver", "Pickup", "Dropoff", "Status", "Scheduled Delivery"]
-    col_widths = [55, 70, 70, 80, 80, 55, 65]
-    rows = _rows_for_trips(trips)
+    portrait_title_block(s, elements, "Daily Trip Report", period=_range_str(start, end))
+    elements.append(portrait_summary_table(s, trips.count(), "Total Trips"))
+    elements.append(Spacer(1, 10))
+    headers = ["Ref#", "Client", "Driver", "Pickup", "Dropoff", "Status", "Sched. Delivery"]
+    rows = _pdf_rows_for_trips(s, trips)
     if rows:
-        elements.append(_build_table(headers, rows, col_widths))
-    else:
-        elements.append(Paragraph("No trips found for the selected period.", table_cell_style))
-    return make_pdf_response("daily_trip_report.pdf", elements)
+        elements.append(portrait_build_table(s, headers, rows))
+    return make_portrait_pdf_response("daily_trip_report.pdf", elements, "Daily Trip Report")
 
 
 @login_required
@@ -193,24 +196,36 @@ def monthly_trip_pdf(request):
     completed = trips.filter(status="delivered").count()
     cancelled = trips.filter(status="cancelled").count()
     in_transit = trips.filter(status="in_transit").count()
+    s = portrait_style_sheet()
     elements = []
-    add_title(elements, "Monthly Trip Report", date_range=_range_str(start, end))
-    elements.append(Paragraph(
-        f"Total: <b>{total}</b>  |  "
-        f"Completed: <b>{completed}</b>  |  "
-        f"In Transit: <b>{in_transit}</b>  |  "
-        f"Cancelled: <b>{cancelled}</b>",
-        table_cell_style
-    ))
+    portrait_title_block(s, elements, "Monthly Trip Report", period=_range_str(start, end))
+    elements.append(portrait_summary_table(s, total, "Total Trips"))
     elements.append(Spacer(1, 8))
-    headers = ["Ref#", "Client", "Driver", "Pickup", "Dropoff", "Status", "Scheduled Delivery"]
-    col_widths = [55, 70, 70, 80, 80, 55, 65]
-    rows = _rows_for_trips(trips)
+    stat_data = [
+        [Paragraph("Completed", s["tc"]), Paragraph(str(completed), ParagraphStyle("CV", parent=s["tcr"], fontName=s["tcr"].fontName))],
+        [Paragraph("In Transit", s["tc"]), Paragraph(str(in_transit), ParagraphStyle("IT", parent=s["tcr"], fontName=s["tcr"].fontName))],
+        [Paragraph("Cancelled", s["tc"]), Paragraph(str(cancelled), ParagraphStyle("CN", parent=s["tcr"], fontName=s["tcr"].fontName))],
+    ]
+    tw = 495
+    st = Table(stat_data, colWidths=[tw * 0.6, tw * 0.4])
+    st.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.5, BORDER_GRAY),
+        ("BACKGROUND", (0, 0), (-1, -1), HexColor("#F9FAFB")),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.3, BORDER_GRAY),
+        ("LINEBELOW", (0, 1), (-1, 1), 0.3, BORDER_GRAY),
+    ]))
+    elements.append(st)
+    elements.append(Spacer(1, 10))
+    headers = ["Ref#", "Client", "Driver", "Pickup", "Dropoff", "Status", "Sched. Delivery"]
+    rows = _pdf_rows_for_trips(s, trips)
     if rows:
-        elements.append(_build_table(headers, rows, col_widths))
-    else:
-        elements.append(Paragraph("No trips found for the selected period.", table_cell_style))
-    return make_pdf_response("monthly_trip_report.pdf", elements)
+        elements.append(portrait_build_table(s, headers, rows))
+    return make_portrait_pdf_response("monthly_trip_report.pdf", elements, "Monthly Trip Report")
 
 
 @login_required
@@ -219,21 +234,23 @@ def truck_utilization_pdf(request):
         total_trips=Count("trips"),
         completed_trips=Count("trips", filter=Q(trips__status="delivered")),
     )
+    s = portrait_style_sheet()
     elements = []
-    add_title(elements, "Truck Utilization Report")
-    headers = ["Plate#", "Type", "Total Trips", "Completed", "Status"]
-    col_widths = [80, 100, 80, 80, 80]
+    portrait_title_block(s, elements, "Truck Utilization Report")
+    elements.append(portrait_summary_table(s, trucks.count(), "Total Trucks"))
+    elements.append(Spacer(1, 10))
+    headers = ["Plate #", "Type", "Total Trips", "Completed", "Status"]
     rows = []
     for truck in trucks:
         rows.append([
-            Paragraph(truck.plate_number, table_cell_style),
-            Paragraph(truck.get_truck_type_display() or "-", table_cell_style),
-            Paragraph(str(truck.total_trips), table_cell_center),
-            Paragraph(str(truck.completed_trips), table_cell_center),
-            Paragraph(truck.get_status_display(), table_cell_center),
+            Paragraph(truck.plate_number, s["tc"]),
+            Paragraph(truck.get_truck_type_display() or "-", s["tc"]),
+            Paragraph(str(truck.total_trips), s["tcc"]),
+            Paragraph(str(truck.completed_trips), s["tcc"]),
+            Paragraph(truck.get_status_display(), s["tcc"]),
         ])
-    elements.append(_build_table(headers, rows, col_widths))
-    return make_pdf_response("truck_utilization.pdf", elements)
+    elements.append(portrait_build_table(s, headers, rows))
+    return make_portrait_pdf_response("truck_utilization.pdf", elements, "Truck Utilization")
 
 
 @login_required
@@ -242,10 +259,12 @@ def driver_performance_pdf(request):
         total_trips=Count("trips"),
         completed_trips=Count("trips", filter=Q(trips__status="delivered")),
     )
+    s = portrait_style_sheet()
     elements = []
-    add_title(elements, "Driver Performance Report")
-    headers = ["Driver", "Total Trips", "Completed", "Cancelled", "Completion Rate"]
-    col_widths = [100, 80, 80, 80, 90]
+    portrait_title_block(s, elements, "Driver Performance Report")
+    elements.append(portrait_summary_table(s, drivers.count(), "Total Drivers"))
+    elements.append(Spacer(1, 10))
+    headers = ["Driver", "Total Trips", "Completed", "Cancelled", "Rate"]
     rows = []
     for d in drivers:
         total = d.total_trips
@@ -253,14 +272,14 @@ def driver_performance_pdf(request):
         cancelled = total - completed if total >= completed else 0
         rate = f"{(completed / total * 100):.1f}%" if total > 0 else "-"
         rows.append([
-            Paragraph(d.full_name, table_cell_style),
-            Paragraph(str(total), table_cell_center),
-            Paragraph(str(completed), table_cell_center),
-            Paragraph(str(cancelled), table_cell_center),
-            Paragraph(rate, table_cell_center),
+            Paragraph(d.full_name, s["tc"]),
+            Paragraph(str(total), s["tcc"]),
+            Paragraph(str(completed), s["tcc"]),
+            Paragraph(str(cancelled), s["tcc"]),
+            Paragraph(rate, s["tcc"]),
         ])
-    elements.append(_build_table(headers, rows, col_widths))
-    return make_pdf_response("driver_performance.pdf", elements)
+    elements.append(portrait_build_table(s, headers, rows))
+    return make_portrait_pdf_response("driver_performance.pdf", elements, "Driver Performance")
 
 
 @login_required
@@ -268,23 +287,23 @@ def maintenance_pdf(request):
     start, end = get_date_range(request)
     records = Maintenance.objects.filter(service_date__gte=start, service_date__lte=end)
     total_cost = records.aggregate(Sum("cost"))["cost__sum"] or 0
+    s = portrait_style_sheet()
     elements = []
-    add_title(elements, "Maintenance Report", date_range=_range_str(start, end))
-    elements.append(Paragraph(f"<b>Total Cost:</b> P{total_cost:,.2f}", table_cell_style))
-    elements.append(Spacer(1, 8))
+    portrait_title_block(s, elements, "Maintenance Report", period=_range_str(start, end))
+    elements.append(portrait_summary_table(s, total_cost, "Total Cost"))
+    elements.append(Spacer(1, 10))
     headers = ["Truck", "Type", "Service Date", "Cost", "Status"]
-    col_widths = [80, 80, 80, 80, 70]
     rows = []
     for r in records:
         rows.append([
-            Paragraph(r.truck.plate_number, table_cell_style),
-            Paragraph(r.get_maintenance_type_display(), table_cell_style),
-            Paragraph(_fmt_date(r.service_date), table_cell_center),
-            Paragraph(f"P{r.cost:,.2f}", table_cell_right),
-            Paragraph(r.get_status_display(), table_cell_center),
+            Paragraph(r.truck.plate_number, s["tc"]),
+            Paragraph(r.get_maintenance_type_display(), s["tc"]),
+            Paragraph(_fmt_date(r.service_date), s["tcc"]),
+            Paragraph(f"₱{r.cost:,.2f}" if r.cost else "-", s["tcr"]),
+            Paragraph(r.get_status_display(), s["tcc"]),
         ])
-    elements.append(_build_table(headers, rows, col_widths))
-    return make_pdf_response("maintenance_report.pdf", elements)
+    elements.append(portrait_build_table(s, headers, rows))
+    return make_portrait_pdf_response("maintenance_report.pdf", elements, "Maintenance Report")
 
 
 @login_required
@@ -295,24 +314,24 @@ def expense_pdf(request):
     if expense_type:
         expenses = expenses.filter(expense_type=expense_type)
     total = expenses.aggregate(Sum("amount"))["amount__sum"] or 0
+    s = portrait_style_sheet()
     elements = []
-    add_title(elements, "Expense Report", date_range=_range_str(start, end))
-    elements.append(Paragraph(f"<b>Total Expenses:</b> P{total:,.2f}", table_cell_style))
-    elements.append(Spacer(1, 8))
+    portrait_title_block(s, elements, "Expense Report", period=_range_str(start, end))
+    elements.append(portrait_summary_table(s, total, "Total Expenses"))
+    elements.append(Spacer(1, 10))
     headers = ["Trip Ref", "Truck", "Type", "Amount", "Date", "Notes"]
-    col_widths = [60, 60, 60, 60, 60, 100]
     rows = []
     for e in expenses:
         rows.append([
-            Paragraph(e.trip.reference_number if e.trip else "-", table_cell_style),
-            Paragraph(e.truck.plate_number if e.truck else "-", table_cell_style),
-            Paragraph(e.get_expense_type_display(), table_cell_center),
-            Paragraph(f"P{e.amount:,.2f}", table_cell_right),
-            Paragraph(_fmt_date(e.date), table_cell_center),
-            Paragraph(e.notes or "-", table_cell_style),
+            Paragraph(e.trip.reference_number if e.trip else "-", s["tc"]),
+            Paragraph(e.truck.plate_number if e.truck else "-", s["tc"]),
+            Paragraph(e.get_expense_type_display(), s["tcc"]),
+            Paragraph(f"₱{e.amount:,.2f}", s["tcr"]),
+            Paragraph(_fmt_date(e.date), s["tcc"]),
+            Paragraph(e.notes or "-", s["tc"]),
         ])
-    elements.append(_build_table(headers, rows, col_widths))
-    return make_pdf_response("expense_report.pdf", elements)
+    elements.append(portrait_build_table(s, headers, rows))
+    return make_portrait_pdf_response("expense_report.pdf", elements, "Expense Report")
 
 
 @login_required
@@ -324,30 +343,44 @@ def payment_pdf(request):
         payments = payments.filter(payment_status=status)
     total_collected = payments.aggregate(Sum("amount_paid"))["amount_paid__sum"] or 0
     total_due = payments.aggregate(Sum("amount_due"))["amount_due__sum"] or 0
+    s = portrait_style_sheet()
     elements = []
-    add_title(elements, "Payment Report", date_range=_range_str(start, end))
-    elements.append(Paragraph(
-        f"Collected: <b>P{total_collected:,.2f}</b>  |  "
-        f"Due: <b>P{total_due:,.2f}</b>",
-        table_cell_style
-    ))
+    portrait_title_block(s, elements, "Payment Report", period=_range_str(start, end))
+    elements.append(portrait_summary_table(s, total_collected, "Total Collected"))
     elements.append(Spacer(1, 8))
+    tw = 495
+    due_data = [
+        [Paragraph("Total Due", s["tc"]), Paragraph(f"₱{total_due:,.2f}", s["tcr"])],
+        [Paragraph("Outstanding", s["tc"]), Paragraph(f"₱{total_due - total_collected:,.2f}", s["tcr"])],
+    ]
+    dt = Table(due_data, colWidths=[tw * 0.6, tw * 0.4])
+    dt.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.5, BORDER_GRAY),
+        ("BACKGROUND", (0, 0), (-1, -1), HexColor("#F9FAFB")),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.3, BORDER_GRAY),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    elements.append(dt)
+    elements.append(Spacer(1, 10))
     headers = ["Trip Ref", "Client", "Amount Due", "Amount Paid", "Balance", "Status", "Date", "Method"]
-    col_widths = [55, 60, 55, 55, 55, 50, 55, 50]
     rows = []
     for p in payments:
         rows.append([
-            Paragraph(p.trip.reference_number if p.trip else "-", table_cell_style),
-            Paragraph(p.client.client_name if p.client else "-", table_cell_style),
-            Paragraph(f"P{p.amount_due:,.2f}", table_cell_right),
-            Paragraph(f"P{p.amount_paid:,.2f}", table_cell_right),
-            Paragraph(f"P{p.amount_due - p.amount_paid:,.2f}", table_cell_right),
-            Paragraph(p.get_payment_status_display(), table_cell_center),
-            Paragraph(_fmt_date(p.payment_date) if p.payment_date else "-", table_cell_center),
-            Paragraph(p.payment_method or "-", table_cell_center),
+            Paragraph(p.trip.reference_number if p.trip else "-", s["tc"]),
+            Paragraph(p.client.client_name if p.client else "-", s["tc"]),
+            Paragraph(f"₱{p.amount_due:,.2f}", s["tcr"]),
+            Paragraph(f"₱{p.amount_paid:,.2f}", s["tcr"]),
+            Paragraph(f"₱{p.amount_due - p.amount_paid:,.2f}", s["tcr"]),
+            Paragraph(p.get_payment_status_display(), s["tcc"]),
+            Paragraph(_fmt_date(p.payment_date) if p.payment_date else "-", s["tcc"]),
+            Paragraph(p.payment_method or "-", s["tcc"]),
         ])
-    elements.append(_build_table(headers, rows, col_widths))
-    return make_pdf_response("payment_report.pdf", elements)
+    elements.append(portrait_build_table(s, headers, rows))
+    return make_portrait_pdf_response("payment_report.pdf", elements, "Payment Report")
 
 
 @login_required
@@ -360,25 +393,32 @@ def profit_loss_pdf(request):
         date__gte=start, date__lte=end
     ).aggregate(Sum("amount"))["amount__sum"] or 0
     profit = revenue - expenses_total
+    s = portrait_style_sheet()
     elements = []
-    add_title(elements, "Profit & Loss Report", date_range=_range_str(start, end))
-    profit_color = GREEN if profit >= 0 else RED
+    portrait_title_block(s, elements, "Profit & Loss Report", period=_range_str(start, end))
+
+    GREEN_OK = HexColor("#16A34A")
+    RED_BAD = HexColor("#DC2626")
+    profit_color = GREEN_OK if profit >= 0 else RED_BAD
     profit_label = "Net Profit" if profit >= 0 else "Net Loss"
+    tw = 495
     stat_data = [
-        [Paragraph("Total Revenue", table_cell_style), Paragraph(f"P{revenue:,.2f}", table_cell_right)],
-        [Paragraph("Total Expenses", table_cell_style), Paragraph(f"P{expenses_total:,.2f}", table_cell_right)],
-        [Paragraph(f"<b>{profit_label}</b>", table_cell_style),
-         Paragraph(f"<b>P{profit:,.2f}</b>", ParagraphStyle("pr", parent=table_cell_right, textColor=profit_color))],
+        [Paragraph("Total Revenue", s["tc"]), Paragraph(f"₱{revenue:,.2f}", s["tcr"])],
+        [Paragraph("Total Expenses", s["tc"]), Paragraph(f"₱{expenses_total:,.2f}", s["tcr"])],
+        [Paragraph(f"<b>{profit_label}</b>", s["tc"]),
+         Paragraph(f"<b>₱{profit:,.2f}</b>", ParagraphStyle("pr", parent=s["tcr"], textColor=profit_color, fontName=s["tcr"].fontName))],
     ]
-    t = Table(stat_data, colWidths=[150, 120])
-    t.setStyle([
-        ("GRID", (0, 0), (-1, -1), 0.4, HexColor("#DCC3AA")),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ("LEFTPADDING", (0, 0), (-1, -1), 8),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+    st = Table(stat_data, colWidths=[tw * 0.55, tw * 0.45])
+    st.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.5, BORDER_GRAY),
         ("BACKGROUND", (0, 0), (-1, -2), HexColor("#F9FAFB")),
-    ])
-    elements.append(t)
-    return make_pdf_response("profit_loss.pdf", elements)
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.3, BORDER_GRAY),
+        ("LINEBELOW", (0, 1), (-1, 1), 0.3, BORDER_GRAY),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    elements.append(st)
+    return make_portrait_pdf_response("profit_loss.pdf", elements, "Profit & Loss Report")

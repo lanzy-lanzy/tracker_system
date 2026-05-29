@@ -6,15 +6,33 @@ from trucks.models import Truck
 from drivers.models import Driver
 
 
+TRIP_STATUS_CHOICES = [
+    ("pending", "Pending"),
+    ("scheduled", "Scheduled"),
+    ("loading", "Loading"),
+    ("in_transit", "In Transit"),
+    ("delivered", "Delivered"),
+    ("cancelled", "Cancelled"),
+]
+
+
+class StatusHistory(models.Model):
+    trip = models.ForeignKey("Trip", on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=TRIP_STATUS_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    changed_by = models.ForeignKey("auth.User", on_delete=models.SET_NULL, null=True, blank=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+        verbose_name_plural = "Status histories"
+
+    def __str__(self):
+        return f"{self.trip.reference_number} → {self.get_status_display()}"
+
+
 class Trip(models.Model):
-    STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("scheduled", "Scheduled"),
-        ("loading", "Loading"),
-        ("in_transit", "In Transit"),
-        ("delivered", "Delivered"),
-        ("cancelled", "Cancelled"),
-    ]
+    STATUS_CHOICES = TRIP_STATUS_CHOICES
 
     reference_number = models.CharField(max_length=50, unique=True, editable=False)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="trips")
