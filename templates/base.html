@@ -85,62 +85,77 @@
 
     {% if user.is_authenticated %}
         <div x-data="{ sidebarOpen: window.innerWidth >= 768 }" class="flex h-screen overflow-hidden">
-        <div x-show="sidebarOpen" x-cloak
-             @keydown.escape.window="sidebarOpen = false"
-             class="sidebar-mobile md:relative md:translate-x-0 md:w-64 sidebar-bg text-sidebar flex-shrink-0 overflow-y-auto"
-             :class="{ 'open': sidebarOpen }">
+        <div @keydown.escape.window="sidebarOpen = false"
+             class="sidebar-mobile md:relative sidebar-bg text-sidebar flex-shrink-0 flex flex-col overflow-y-auto"
+             :class="{ 'open': sidebarOpen, 'sidebar-collapsed': !sidebarOpen }">
             <div class="px-4 py-3 border-b sidebar-divider">
                 <div class="flex items-center space-x-3 h-11">
                     <div class="w-10 h-10 shrink-0">
                         <img src="{% static 'logo/tracker_logo.png' %}" alt="TT" class="w-10 h-10 object-contain rounded-lg">
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 collapsed-hide flex-1">
                         <h1 class="font-bold text-lg leading-tight truncate">Trucking Tracker</h1>
                         <p class="text-xs text-sidebar-muted truncate">Fleet Management</p>
                     </div>
+                    <button @click="sidebarOpen = false" class="md:hidden p-1.5 rounded-lg hover:bg-white/10 collapsed-hide">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
             </div>
 
-            <nav class="p-3 space-y-1">
+            <nav class="p-3 space-y-1 flex-1 collapsed-nav"
+                 @click="if(window.innerWidth < 768 && $event.target.closest('a[href]')) sidebarOpen = false">
                 {% if user.profile.role != 'driver' %}
                 <a href="{% url 'dashboard' %}"
-                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'dashboard' %}active bg-white/10{% endif %}">
+                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'dashboard' %}active bg-white/10{% endif %}"
+                   @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
+                   @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span>Dashboard</span>
+                    <span class="collapsed-hide">Dashboard</span>
+                    <span class="sidebar-tooltip" style="display:none">Dashboard</span>
                 </a>
                 {% endif %}
                 {% if user.profile.role == 'driver' %}
                 <a href="{% url 'driver_dashboard' %}"
-                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'driver_dashboard' %}active bg-white/10{% endif %}">
+                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'driver_dashboard' %}active bg-white/10{% endif %}"
+                   @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
+                   @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
-                    <span>My Trips</span>
+                    <span class="collapsed-hide">My Trips</span>
+                    <span class="sidebar-tooltip" style="display:none">My Trips</span>
                 </a>
                 {% endif %}
 
                 {% if user.profile.role != 'driver' %}
                 <div x-data="{ open: {% if request.resolver_match.url_name in 'truck_list truck_create truck_detail truck_edit truck_delete truck_modal_create truck_modal_edit truck_modal_detail truck_modal_delete driver_list driver_create driver_detail driver_edit driver_delete driver_modal_create driver_modal_edit driver_modal_detail driver_modal_delete' %}true{% else %}false{% endif %} }">
-                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'truck_list truck_create truck_detail truck_edit truck_delete truck_modal_create truck_modal_edit truck_modal_detail truck_modal_delete driver_list driver_create driver_detail driver_edit driver_delete driver_modal_create driver_modal_edit driver_modal_detail driver_modal_delete' %} active bg-white/10{% endif %}">
+                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'truck_list truck_create truck_detail truck_edit truck_delete truck_modal_create truck_modal_edit truck_modal_detail truck_modal_delete driver_list driver_create driver_detail driver_edit driver_delete driver_modal_create driver_modal_edit driver_modal_detail driver_modal_delete' %} active bg-white/10{% endif %}"
+                            @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
+                            @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
                         <div class="flex items-center space-x-3">
                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>Fleet</span>
+                            <span class="collapsed-hide">Fleet</span>
                         </div>
-                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-4 h-4 transition-transform collapsed-hide" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <span class="sidebar-tooltip" style="display:none">Fleet</span>
                     </button>
-                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
                         <a href="{% url 'truck_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'truck_list' %}active{% endif %}">Trucks</a>
                         <a href="{% url 'driver_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'driver_list' %}active{% endif %}">Drivers</a>
                     </div>
                 </div>
 
                 <div x-data="{ open: {% if request.resolver_match.url_name in 'trip_list trip_create trip_detail trip_edit trip_delete trip_update_status trip_upload_proof trip_filter trip_search trip_modal_create trip_modal_edit trip_modal_detail trip_modal_delete cargo_list cargo_create cargo_edit cargo_delete cargo_modal_create cargo_modal_edit cargo_modal_delete client_list client_create client_detail client_edit client_delete client_modal_create client_modal_edit client_modal_detail client_modal_delete' %}true{% else %}false{% endif %} }">
-                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'trip_list trip_create trip_detail trip_edit trip_delete trip_update_status trip_upload_proof trip_filter trip_search trip_modal_create trip_modal_edit trip_modal_detail trip_modal_delete cargo_list cargo_create cargo_edit cargo_delete cargo_modal_create cargo_modal_edit cargo_modal_delete client_list client_create client_detail client_edit client_delete client_modal_create client_modal_edit client_modal_detail client_modal_delete' %} active bg-white/10{% endif %}">
+                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'trip_list trip_create trip_detail trip_edit trip_delete trip_update_status trip_upload_proof trip_filter trip_search trip_modal_create trip_modal_edit trip_modal_detail trip_modal_delete cargo_list cargo_create cargo_edit cargo_delete cargo_modal_create cargo_modal_edit cargo_modal_delete client_list client_create client_detail client_edit client_delete client_modal_create client_modal_edit client_modal_detail client_modal_delete' %} active bg-white/10{% endif %}"
+                            @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
+                            @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
                         <div class="flex items-center space-x-3">
                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                            <span>Operations</span>
+                            <span class="collapsed-hide">Operations</span>
                         </div>
-                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-4 h-4 transition-transform collapsed-hide" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <span class="sidebar-tooltip" style="display:none">Operations</span>
                     </button>
-                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
                         <a href="{% url 'trip_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'trip_list' %}active{% endif %}">Trips</a>
                         <a href="{% url 'cargo_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'cargo_list' %}active{% endif %}">Cargo</a>
                         <a href="{% url 'client_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'client_list' %}active{% endif %}">Clients</a>
@@ -148,34 +163,43 @@
                 </div>
 
                 <div x-data="{ open: {% if request.resolver_match.url_name in 'expense_list expense_create expense_edit expense_delete expense_modal_create expense_modal_edit expense_modal_delete payment_list payment_create payment_edit payment_delete payment_modal_create payment_modal_edit payment_modal_delete' %}true{% else %}false{% endif %} }">
-                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'expense_list expense_create expense_edit expense_delete expense_modal_create expense_modal_edit expense_modal_delete payment_list payment_create payment_edit payment_delete payment_modal_create payment_modal_edit payment_modal_delete' %} active bg-white/10{% endif %}">
+                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'expense_list expense_create expense_edit expense_delete expense_modal_create expense_modal_edit expense_modal_delete payment_list payment_create payment_edit payment_delete payment_modal_create payment_modal_edit payment_modal_delete' %} active bg-white/10{% endif %}"
+                            @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
+                            @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
                         <div class="flex items-center space-x-3">
                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            <span>Finance</span>
+                            <span class="collapsed-hide">Finance</span>
                         </div>
-                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-4 h-4 transition-transform collapsed-hide" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <span class="sidebar-tooltip" style="display:none">Finance</span>
                     </button>
-                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
                         <a href="{% url 'expense_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}">Expenses</a>
                         <a href="{% url 'payment_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'payment_list' %}active{% endif %}">Payments</a>
                     </div>
                 </div>
 
                 <a href="{% url 'maintenance_list' %}"
-                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'maintenance_list' %}active bg-white/10{% endif %}">
+                   class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'maintenance_list' %}active bg-white/10{% endif %}"
+                   @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
+                   @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span>Maintenance</span>
+                    <span class="collapsed-hide">Maintenance</span>
+                    <span class="sidebar-tooltip" style="display:none">Maintenance</span>
                 </a>
 
                 <div x-data="{ open: {% if request.resolver_match.url_name in 'report_dashboard daily_trip_report monthly_trip_report truck_utilization_report driver_performance_report maintenance_report expense_report payment_report profit_loss_report' %}true{% else %}false{% endif %} }">
-                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'report_dashboard daily_trip_report monthly_trip_report truck_utilization_report driver_performance_report maintenance_report expense_report payment_report profit_loss_report' %} active bg-white/10{% endif %}">
+                    <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm{% if request.resolver_match.url_name in 'report_dashboard daily_trip_report monthly_trip_report truck_utilization_report driver_performance_report maintenance_report expense_report payment_report profit_loss_report' %} active bg-white/10{% endif %}"
+                            @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
+                            @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
                         <div class="flex items-center space-x-3">
                             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <span>Reports</span>
+                            <span class="collapsed-hide">Reports</span>
                         </div>
-                        <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="w-4 h-4 transition-transform collapsed-hide" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        <span class="sidebar-tooltip" style="display:none">Reports</span>
                     </button>
-                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                    <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
                         <a href="{% url 'report_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'report_dashboard' %}active{% endif %}">Report Center</a>
                         <a href="{% url 'daily_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'daily_trip_report' %}active{% endif %}">Daily Trips</a>
                         <a href="{% url 'monthly_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'monthly_trip_report' %}active{% endif %}">Monthly Trips</a>
@@ -186,17 +210,20 @@
 
                 {% if user.profile.role == 'admin' %}
                 <div class="pt-4">
-                    <hr class="border-t sidebar-divider mb-3">
-                    <p class="px-3 text-xs text-sidebar-muted font-semibold uppercase tracking-wider" style="opacity:0.5">Administration</p>
+                    <hr class="border-t sidebar-divider mb-3 collapsed-hide">
+                    <p class="px-3 text-xs text-sidebar-muted font-semibold uppercase tracking-wider collapsed-hide" style="opacity:0.5">Administration</p>
                     <div x-data="{ open: {% if request.resolver_match.url_name|slice:':5' == 'admin' %}true{% else %}false{% endif %} }">
-                        <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm mt-2 {% if request.resolver_match.url_name|slice:':5' == 'admin' %}active bg-white/10{% endif %}">
+                        <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm mt-2 {% if request.resolver_match.url_name|slice:':5' == 'admin' %}active bg-white/10{% endif %}"
+                                @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
+                                @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
                             <span class="flex items-center space-x-3">
                                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                <span>Security Panel</span>
+                                <span class="collapsed-hide">Security Panel</span>
                             </span>
-                            <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <svg class="w-4 h-4 transition-transform collapsed-hide" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <span class="sidebar-tooltip" style="display:none">Security Panel</span>
                         </button>
-                        <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
+                        <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
                             <a href="{% url 'admin_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
                                 <span>Dashboard</span>

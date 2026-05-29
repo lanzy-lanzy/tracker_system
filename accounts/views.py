@@ -7,7 +7,60 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django_ratelimit.decorators import ratelimit
+from drivers.models import Driver
+from trucks.models import Truck
 from .models import Profile
+
+
+DRIVER_REQUIRED_FIELDS = {
+    "contact_number": "Contact number",
+    "license_number": "License number",
+    "license_expiry": "License expiry",
+}
+
+
+def _user_form_context(edit_user=None):
+    return {
+        "edit_user": edit_user,
+        "trucks": Truck.objects.filter(status="available"),
+        "employment_statuses": Driver.EMPLOYMENT_STATUS,
+    }
+
+
+def _driver_full_name(user):
+    return user.get_full_name().strip() or user.username
+
+
+def _missing_driver_fields(request):
+    return [
+        label
+        for field, label in DRIVER_REQUIRED_FIELDS.items()
+        if not request.POST.get(field, "").strip()
+    ]
+
+
+def _sync_driver_profile(user, request):
+    driver, _ = Driver.objects.get_or_create(
+        user=user,
+        defaults={
+            "full_name": _driver_full_name(user),
+            "contact_number": request.POST.get("contact_number", "").strip(),
+            "license_number": request.POST.get("license_number", "").strip(),
+            "license_expiry": request.POST.get("license_expiry"),
+        },
+    )
+    driver.full_name = _driver_full_name(user)
+    driver.contact_number = request.POST.get("contact_number", "").strip()
+    driver.address = request.POST.get("address", "").strip()
+    driver.license_number = request.POST.get("license_number", "").strip()
+    driver.license_expiry = request.POST.get("license_expiry")
+    driver.assigned_truck_id = request.POST.get("assigned_truck") or None
+    driver.employment_status = request.POST.get("employment_status", "active")
+    driver.emergency_contact_name = request.POST.get("emergency_contact_name", "").strip()
+    driver.emergency_contact_number = request.POST.get("emergency_contact_number", "").strip()
+    driver.remarks = request.POST.get("remarks", "").strip()
+    driver.save()
+    return driver
 
 
 @ratelimit(key="ip", rate="10/m", method="POST", block=True)
@@ -98,15 +151,28 @@ def user_create_view(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
         role = request.POST.get("role")
+        if role == "driver":
+            missing_fields = _missing_driver_fields(request)
+            if missing_fields:
+                messages.error(request, f"Driver profile requires: {', '.join(missing_fields)}.")
+                return render(request, "accounts/user_form.html", _user_form_context())
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
         else:
-            user = User.objects.create_user(username=username, email=email, password=password)
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=request.POST.get("first_name", ""),
+                last_name=request.POST.get("last_name", ""),
+            )
             user.profile.role = role
             user.profile.save()
+            if role == "driver":
+                _sync_driver_profile(user, request)
             messages.success(request, "User created successfully.")
             return redirect("user_list")
-    return render(request, "accounts/user_form.html")
+    return render(request, "accounts/user_form.html", _user_form_context())
 
 
 @ratelimit(key="ip", rate="5/m", method="POST", block=True)
@@ -117,18 +183,26 @@ def user_edit_view(request, pk):
         return redirect("dashboard")
     user = get_object_or_404(User, pk=pk)
     if request.method == "POST":
+        role = request.POST.get("role", user.profile.role)
+        if role == "driver":
+            missing_fields = _missing_driver_fields(request)
+            if missing_fields:
+                messages.error(request, f"Driver profile requires: {', '.join(missing_fields)}.")
+                return render(request, "accounts/user_form.html", _user_form_context(user))
         user.email = request.POST.get("email", "")
         user.first_name = request.POST.get("first_name", "")
         user.last_name = request.POST.get("last_name", "")
         user.save()
-        user.profile.role = request.POST.get("role", user.profile.role)
+        user.profile.role = role
         user.profile.save()
         if request.POST.get("password"):
             user.set_password(request.POST.get("password"))
             user.save()
+        if role == "driver":
+            _sync_driver_profile(user, request)
         messages.success(request, "User updated successfully.")
         return redirect("user_list")
-    return render(request, "accounts/user_form.html", {"edit_user": user})
+    return render(request, "accounts/user_form.html", _user_form_context(user))
 
 
 @login_required

@@ -45,7 +45,7 @@
                                 {% if u.driver_profile %}
                                 <a href="{% url 'driver_detail' u.driver_profile.pk %}" class="text-[#810B38] hover:underline text-sm font-medium">View Profile</a>
                                 {% else %}
-                                <span class="text-sm text-gray-400">No linked driver</span>
+                                <a href="{% url 'user_edit' u.pk %}" class="text-amber-600 hover:text-amber-800 hover:underline text-sm font-medium">Complete profile</a>
                                 {% endif %}
                             {% else %}
                             <span class="text-sm text-gray-400">—</span>

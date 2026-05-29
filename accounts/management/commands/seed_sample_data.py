@@ -1,3 +1,4 @@
+import os
 import random
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -5,6 +6,7 @@ from zoneinfo import ZoneInfo
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.utils.text import slugify
 from django.utils import timezone
 
 from accounts.models import Profile
@@ -32,6 +34,17 @@ def aware_at(day, hour, minute=0):
         datetime.combine(day, datetime.min.time()).replace(hour=hour, minute=minute),
         PHT,
     )
+
+
+def seeded_driver_username(full_name):
+    return f"driver_{slugify(full_name).replace('-', '_')}"
+
+
+def split_name(full_name):
+    parts = full_name.split(" ", 1)
+    if len(parts) == 1:
+        return parts[0], ""
+    return parts[0], parts[1]
 
 
 class Command(BaseCommand):
@@ -83,7 +96,7 @@ class Command(BaseCommand):
             trucks.append(t)
 
         # ── Drivers ────────────────────────────────────────────────
-        self.stdout.write("Creating drivers...")
+        self.stdout.write("Creating driver users and drivers...")
         driver_data = [
             ("Juan Dela Cruz", "0917-111-1111", "Manila City"),
             ("Maria Santos", "0917-222-2222", "Quezon City"),
@@ -93,8 +106,37 @@ class Command(BaseCommand):
             ("Luisa Bautista", "0917-666-6666", "Bacolod City"),
         ]
         drivers = []
+        driver_password = os.environ.get("SEED_DRIVER_PASSWORD", "Driver123!")
         for idx, (name, phone, address) in enumerate(driver_data):
+            first_name, last_name = split_name(name)
+            username = seeded_driver_username(name)
+            email_slug = slugify(name).replace("-", ".")
+            user, _ = User.objects.get_or_create(
+                username=username,
+                defaults={
+                    "email": f"{email_slug}@example.ph",
+                    "first_name": first_name,
+                    "last_name": last_name,
+                },
+            )
+            user.email = f"{email_slug}@example.ph"
+            user.first_name = first_name
+            user.last_name = last_name
+            user.is_active = True
+            user.set_password(driver_password)
+            user.save()
+
+            Profile.objects.update_or_create(
+                user=user,
+                defaults={
+                    "role": "driver",
+                    "phone": phone,
+                    "address": address,
+                },
+            )
+
             d = Driver.objects.create(
+                user=user,
                 full_name=name,
                 contact_number=phone,
                 address=address,

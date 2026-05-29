@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-3xl mx-auto">
     <div class="card p-6">
-        <form method="post" class="space-y-6">
+        <form method="post" class="space-y-6" x-data="{ role: '{{ edit_user.profile.role|default:'' }}' }">
             {% csrf_token %}
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -33,13 +33,79 @@
                 </div>
                 <div>
                     <label class="form-label" for="role">Role</label>
-                    <select id="role" name="role" class="form-input" required>
+                    <select id="role" name="role" class="form-input" x-model="role" required>
                         <option value="">Select a role...</option>
                         <option value="admin" {% if edit_user.profile.role == 'admin' %}selected{% endif %}>Admin / Owner</option>
                         <option value="dispatcher" {% if edit_user.profile.role == 'dispatcher' %}selected{% endif %}>Dispatcher / Staff</option>
                         <option value="driver" {% if edit_user.profile.role == 'driver' %}selected{% endif %}>Driver</option>
                         <option value="client" {% if edit_user.profile.role == 'client' %}selected{% endif %}>Client</option>
                     </select>
+                </div>
+            </div>
+
+            <div x-show="role === 'driver'" x-cloak class="border-t border-gray-100 pt-6 space-y-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-[#541A1A]">Driver Operations Profile</h3>
+                    <p class="text-xs text-gray-500 mt-1">Driver users need this profile so they appear on the Drivers page and can be assigned trips.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label" for="contact_number">Contact Number</label>
+                        <input type="text" id="contact_number" name="contact_number" class="form-input"
+                               value="{{ edit_user.driver_profile.contact_number|default:'' }}"
+                               :required="role === 'driver'" placeholder="e.g. 09171234567">
+                    </div>
+                    <div>
+                        <label class="form-label" for="license_number">License Number</label>
+                        <input type="text" id="license_number" name="license_number" class="form-input"
+                               value="{{ edit_user.driver_profile.license_number|default:'' }}"
+                               :required="role === 'driver'" placeholder="e.g. LIC-001">
+                    </div>
+                    <div>
+                        <label class="form-label" for="license_expiry">License Expiry</label>
+                        <input type="date" id="license_expiry" name="license_expiry" class="form-input"
+                               value="{{ edit_user.driver_profile.license_expiry|date:'Y-m-d'|default:'' }}"
+                               :required="role === 'driver'">
+                    </div>
+                    <div>
+                        <label class="form-label" for="employment_status">Employment Status</label>
+                        <select id="employment_status" name="employment_status" class="form-input">
+                            {% for value, label in employment_statuses %}
+                            <option value="{{ value }}" {% if edit_user.driver_profile.employment_status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="assigned_truck">Assigned Truck</label>
+                        <select id="assigned_truck" name="assigned_truck" class="form-input">
+                            <option value="">Not Assigned</option>
+                            {% for truck in trucks %}
+                            <option value="{{ truck.pk }}" {% if edit_user.driver_profile.assigned_truck_id == truck.pk %}selected{% endif %}>
+                                {{ truck.plate_number }} - {{ truck.get_truck_type_display }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="emergency_contact_name">Emergency Contact Name</label>
+                        <input type="text" id="emergency_contact_name" name="emergency_contact_name" class="form-input"
+                               value="{{ edit_user.driver_profile.emergency_contact_name|default:'' }}"
+                               placeholder="e.g. Maria Dela Cruz">
+                    </div>
+                    <div>
+                        <label class="form-label" for="emergency_contact_number">Emergency Contact #</label>
+                        <input type="text" id="emergency_contact_number" name="emergency_contact_number" class="form-input"
+                               value="{{ edit_user.driver_profile.emergency_contact_number|default:'' }}"
+                               placeholder="e.g. 09181234567">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label" for="address">Address</label>
+                    <textarea id="address" name="address" rows="2" class="form-input" placeholder="Complete address...">{{ edit_user.driver_profile.address|default:'' }}</textarea>
+                </div>
+                <div>
+                    <label class="form-label" for="remarks">Remarks</label>
+                    <textarea id="remarks" name="remarks" rows="2" class="form-input" placeholder="Additional notes...">{{ edit_user.driver_profile.remarks|default:'' }}</textarea>
                 </div>
             </div>
 
