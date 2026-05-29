@@ -1,20 +1,66 @@
 from decimal import Decimal
+import importlib.util
+import os
+import sys
+import uuid
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.http import HttpResponse
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from clients.models import Client
 from expenses.models import Expense
 from notifications.models import Notification
 from payments.models import Payment
+from tracker_system.middleware import CSPMiddleware
 from trips.models import Trip
 from trucks.models import Truck
+
+
+class DeploymentSettingsTests(TestCase):
+    def load_settings_with_env(self, **env):
+        module_name = f"tracker_system_test_settings_{uuid.uuid4().hex}"
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "tracker_system", "settings.py")
+        spec = importlib.util.spec_from_file_location(module_name, settings_path)
+        module = importlib.util.module_from_spec(spec)
+
+        with patch.dict(os.environ, env, clear=False):
+            sys.modules[module_name] = module
+            try:
+                spec.loader.exec_module(module)
+            finally:
+                sys.modules.pop(module_name, None)
+
+        return module
+
+    def test_railway_public_domain_is_trusted(self):
+        settings_module = self.load_settings_with_env(
+            DEBUG="False",
+            SECRET_KEY="test-secret",
+            RAILWAY_PUBLIC_DOMAIN="tracker-production.up.railway.app",
+        )
+
+        self.assertIn("tracker-production.up.railway.app", settings_module.ALLOWED_HOSTS)
+        self.assertIn(".up.railway.app", settings_module.ALLOWED_HOSTS)
+        self.assertIn(
+            "https://tracker-production.up.railway.app",
+            settings_module.CSRF_TRUSTED_ORIGINS,
+        )
+
+    @override_settings(DEBUG=False)
+    def test_production_csp_allows_alpine_expression_evaluation(self):
+        response = CSPMiddleware(lambda request: HttpResponse())(None)
+
+        self.assertIn("'unsafe-eval'", response["Content-Security-Policy"])
 
 
 class ApiContractTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="dispatcher", password="password")
+        self.user.profile.role = "admin"
+        self.user.profile.save(update_fields=["role"])
         self.client.force_login(self.user)
 
     def test_authenticated_clients_can_list_and_create_trucks(self):

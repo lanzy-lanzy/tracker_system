@@ -34,10 +34,12 @@ if not SECRET_KEY:
 ALLOWED_HOSTS = []
 if DEBUG:
     ALLOWED_HOSTS.extend(["127.0.0.1", "localhost"])
-for var in ("VERCEL_URL", "VERCEL_BRANCH_URL"):
-    vercel_host = os.environ.get(var)
-    if vercel_host:
-        ALLOWED_HOSTS.append(vercel_host)
+else:
+    ALLOWED_HOSTS.append(".up.railway.app")
+
+railway_host = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+if railway_host:
+    ALLOWED_HOSTS.append(railway_host)
 
 ALLOWED_HOSTS.extend(
     host.strip()
@@ -46,10 +48,8 @@ ALLOWED_HOSTS.extend(
 )
 
 CSRF_TRUSTED_ORIGINS = []
-for var in ("VERCEL_URL", "VERCEL_BRANCH_URL"):
-    vercel_host = os.environ.get(var)
-    if vercel_host:
-        CSRF_TRUSTED_ORIGINS.append(f"https://{vercel_host}")
+if railway_host:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{railway_host}")
 
 CSRF_TRUSTED_ORIGINS.extend(
     origin.strip()

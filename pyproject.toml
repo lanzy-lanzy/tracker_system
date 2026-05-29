@@ -10,14 +10,9 @@ dependencies = [
   "django-ratelimit==4.1.0",
   "django-axes==8.3.1",
   "psycopg2-binary==2.9.11",
+  "gunicorn==23.0.0",
   "reportlab==4.5.1",
   "whitenoise==6.11.0",
   "python-dotenv>=1.2.2",
   "django-ipware>=7.0.1",
 ]
-
-[tool.vercel]
-entrypoint = "tracker_system.wsgi:application"
-
-[tool.vercel.scripts]
-build = "python manage.py collectstatic --noinput"
