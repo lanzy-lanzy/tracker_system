@@ -7,5 +7,5 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         from .signals import register_all_models
-
+        import core.cache_invalidation
         register_all_models()

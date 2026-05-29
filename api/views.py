@@ -11,6 +11,7 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from core.cache_utils import get_or_set_cache
 
 logger = logging.getLogger(__name__)
 
@@ -255,25 +256,24 @@ class ChoiceMetadataView(APIView):
         return super().dispatch(*args, **kwargs)
 
     def get(self, request):
-        return Response(
-            {
-                "accounts": {"roles": _choices(Profile.ROLE_CHOICES)},
-                "trucks": {
-                    "types": _choices(Truck.TRUCK_TYPES),
-                    "status": _choices(Truck.STATUS_CHOICES),
-                },
-                "drivers": {"employment_status": _choices(Driver.EMPLOYMENT_STATUS)},
-                "trips": {"status": _choices(Trip.STATUS_CHOICES)},
-                "cargo": {"condition": _choices(Cargo.CONDITION_CHOICES)},
-                "maintenance": {
-                    "types": _choices(Maintenance.MAINTENANCE_TYPES),
-                    "status": _choices(Maintenance.STATUS_CHOICES),
-                },
-                "expenses": {"types": _choices(Expense.EXPENSE_TYPES)},
-                "payments": {"status": _choices(Payment.STATUS_CHOICES)},
-                "notifications": {"types": _choices(Notification.NOTIFICATION_TYPES)},
-            }
-        )
+        data = get_or_set_cache("dropdown:choices", lambda: {
+            "accounts": {"roles": _choices(Profile.ROLE_CHOICES)},
+            "trucks": {
+                "types": _choices(Truck.TRUCK_TYPES),
+                "status": _choices(Truck.STATUS_CHOICES),
+            },
+            "drivers": {"employment_status": _choices(Driver.EMPLOYMENT_STATUS)},
+            "trips": {"status": _choices(Trip.STATUS_CHOICES)},
+            "cargo": {"condition": _choices(Cargo.CONDITION_CHOICES)},
+            "maintenance": {
+                "types": _choices(Maintenance.MAINTENANCE_TYPES),
+                "status": _choices(Maintenance.STATUS_CHOICES),
+            },
+            "expenses": {"types": _choices(Expense.EXPENSE_TYPES)},
+            "payments": {"status": _choices(Payment.STATUS_CHOICES)},
+            "notifications": {"types": _choices(Notification.NOTIFICATION_TYPES)},
+        }, timeout=3600)
+        return Response(data)
 
 
 class DailyTripReportView(APIView):

@@ -122,6 +122,35 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
 
+CACHE_BACKEND = os.environ.get("CACHE_BACKEND", "locmem").strip().lower()
+REDIS_URL = os.environ.get("REDIS_URL", "")
+CACHE_TIMEOUT = int(os.environ.get("CACHE_TIMEOUT", "300"))
+
+if CACHE_BACKEND == "redis" and REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+                "IGNORE_EXCEPTIONS": True,
+            },
+            "KEY_PREFIX": "tracker",
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "tracker-local-cache",
+            "OPTIONS": {
+                "MAX_ENTRIES": 1000,
+            },
+            "KEY_PREFIX": "tracker",
+        }
+    }
+
 ROOT_URLCONF = "tracker_system.urls"
 
 TEMPLATES = [

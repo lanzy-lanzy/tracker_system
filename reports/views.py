@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from core.utils import is_driver
+from core.cache_utils import get_or_set_cache
 from trips.models import Trip
 from trucks.models import Truck
 from drivers.models import Driver
@@ -77,19 +78,23 @@ def monthly_trip_report(request):
 
 @login_required
 def truck_utilization_report(request):
-    trucks = Truck.objects.annotate(
-        total_trips=Count("trips"),
-        completed_trips=Count("trips", filter=Q(trips__status="delivered")),
-    )
+    trucks = get_or_set_cache("reports:utilization:trucks", lambda: list(
+        Truck.objects.annotate(
+            total_trips=Count("trips"),
+            completed_trips=Count("trips", filter=Q(trips__status="delivered")),
+        )
+    ))
     return render(request, "reports/truck_utilization.html", {"trucks": trucks})
 
 
 @login_required
 def driver_performance_report(request):
-    drivers = Driver.objects.annotate(
-        total_trips=Count("trips"),
-        completed_trips=Count("trips", filter=Q(trips__status="delivered")),
-    )
+    drivers = get_or_set_cache("reports:performance:drivers", lambda: list(
+        Driver.objects.annotate(
+            total_trips=Count("trips"),
+            completed_trips=Count("trips", filter=Q(trips__status="delivered")),
+        )
+    ))
     for d in drivers:
         d.cancelled_trips = d.total_trips - d.completed_trips
         d.completion_rate = (d.completed_trips / d.total_trips * 100) if d.total_trips > 0 else 0
