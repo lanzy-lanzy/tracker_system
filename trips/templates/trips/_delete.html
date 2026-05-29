@@ -10,7 +10,6 @@
   <form method="POST" hx-post="{% url action_url pk=trip.pk %}" hx-target="#modal-content" hx-swap="innerHTML">
     {% csrf_token %}
     <div class="flex items-center justify-center space-x-3">
-      <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Cancel</button>
       <button type="submit" class="btn-danger">Yes, Delete Trip</button>
     </div>
   </form>

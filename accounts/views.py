@@ -1,8 +1,10 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django_ratelimit.decorators import ratelimit
 from .models import Profile
@@ -52,6 +54,28 @@ def profile_edit_view(request):
         messages.success(request, "Profile updated successfully.")
         return redirect("profile")
     return render(request, "accounts/profile_edit.html")
+
+
+@ratelimit(key="ip", rate="10/m", method="POST", block=True)
+@login_required
+def profile_edit_modal_view(request):
+    if request.method == "POST":
+        user = request.user
+        user.first_name = request.POST.get("first_name", "")
+        user.last_name = request.POST.get("last_name", "")
+        user.email = request.POST.get("email", "")
+        user.save()
+        profile = user.profile
+        profile.phone = request.POST.get("phone", "")
+        profile.address = request.POST.get("address", "")
+        if request.FILES.get("profile_picture"):
+            profile.profile_picture = request.FILES["profile_picture"]
+        profile.save()
+        response = HttpResponse()
+        response["HX-Trigger"] = "profileUpdated"
+        response["HX-Redirect"] = reverse("profile")
+        return response
+    return render(request, "accounts/_profile_edit_modal.html", {"user": request.user})
 
 
 @login_required
@@ -105,3 +129,19 @@ def user_edit_view(request, pk):
         messages.success(request, "User updated successfully.")
         return redirect("user_list")
     return render(request, "accounts/user_form.html", {"edit_user": user})
+
+
+@login_required
+def user_toggle_active_view(request, pk):
+    if request.user.profile.role not in ["admin"]:
+        messages.error(request, "Access denied.")
+        return redirect("dashboard")
+    user = get_object_or_404(User, pk=pk)
+    if user == request.user:
+        messages.error(request, "You cannot deactivate your own account.")
+        return redirect("user_list")
+    user.is_active = not user.is_active
+    user.save()
+    status = "activated" if user.is_active else "deactivated"
+    messages.success(request, f"User {user.username} {status} successfully.")
+    return redirect("user_list")

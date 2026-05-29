@@ -1,7 +1,6 @@
 <div class="p-6" x-data="{ submitting: false }">
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center mb-6">
     <h3 class="text-xl font-bold text-[#541A1A]">{% if form_driver %}Edit{% else %}Add New{% endif %} Driver</h3>
-    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
   </div>
   {% if error %}<div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{{ error }}</div>{% endif %}
   <form hx-post="{% if pk %}{% url action_url pk %}{% else %}{% url action_url %}{% endif %}" hx-target="#modal-content" hx-swap="innerHTML" @submit="submitting = true">

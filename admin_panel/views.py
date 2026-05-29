@@ -8,7 +8,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
 from django.db.models import Count
+from django.http import HttpResponse
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 
@@ -101,6 +103,34 @@ def delete_session_view(request, session_key):
         Session.objects.filter(session_key=session_key).delete()
         logger.info("Admin %s force-logged out session %s", request.user.username, session_key)
     return redirect("admin_sessions")
+
+
+@login_required
+@role_required("admin")
+def admin_session_modal_delete(request, session_key):
+    session = get_object_or_404(Session, session_key=session_key)
+    username = None
+    try:
+        data = session.get_decoded()
+        user_id = data.get("_auth_user_id")
+        if user_id:
+            User = get_user_model()
+            user = User.objects.filter(pk=user_id).first()
+            if user:
+                username = user.username
+    except Exception:
+        pass
+    if request.method == "POST":
+        session.delete()
+        logger.info("Admin %s force-logged out session %s", request.user.username, session_key)
+        response = HttpResponse()
+        response["HX-Trigger"] = "closeModal"
+        response["HX-Redirect"] = reverse("admin_sessions")
+        return response
+    return render(request, "admin_panel/_session_delete_modal.html", {
+        "session_key": session_key,
+        "username": username,
+    })
 
 
 @login_required

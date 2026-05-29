@@ -1,62 +1,88 @@
 {% load humanize %}
-<div class="p-6">
-  <div class="flex items-center justify-between mb-6">
-    <h3 class="text-xl font-bold text-[#541A1A]">{{ record.truck.plate_number }} — {{ record.get_maintenance_type_display }}</h3>
-    <button @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
-  </div>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <p class="form-label text-xs text-gray-500">Truck</p>
-      <p class="text-sm font-medium text-gray-800">{{ record.truck.plate_number }}</p>
+<div class="relative">
+  <div class="h-1.5 bg-gradient-to-r from-[#810B38] to-[#541A1A] rounded-t-2xl"></div>
+  <div class="p-6">
+    <div class="flex items-start justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-[#810B38]/10 flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5 text-[#810B38]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900">{{ record.truck.plate_number }}</h3>
+          <p class="text-xs text-muted">{{ record.get_maintenance_type_display }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="badge text-white text-xs px-3 py-1" style="background-color:
+          {% if record.status == 'scheduled' %}#0284c7
+          {% elif record.status == 'ongoing' %}#d97706
+          {% elif record.status == 'completed' %}#16a34a
+          {% elif record.status == 'cancelled' %}#dc2626
+          {% else %}#6b7280{% endif %};">{{ record.get_status_display }}</span>
+      </div>
     </div>
-    <div>
-      <p class="form-label text-xs text-gray-500">Maintenance Type</p>
-      <p class="text-sm font-medium text-gray-800">{{ record.get_maintenance_type_display }}</p>
-    </div>
-    <div>
-      <p class="form-label text-xs text-gray-500">Service Date</p>
-      <p class="text-sm font-medium text-gray-800">{{ record.service_date|date:"M d, Y" }}</p>
-    </div>
-    <div>
-      <p class="form-label text-xs text-gray-500">Next Service Date</p>
-      <p class="text-sm font-medium text-gray-800">
-        {{ record.next_service_date|date:"M d, Y"|default:"—" }}
-        {% if record.is_overdue %}<span class="text-red-600">(Overdue)</span>{% endif %}
-      </p>
-    </div>
-    <div>
-      <p class="form-label text-xs text-gray-500">Cost</p>
-      <p class="text-sm font-medium text-gray-800">{% if record.cost %}₱{{ record.cost|floatformat:2|intcomma }}{% else %}—{% endif %}</p>
-    </div>
-    <div>
-      <p class="form-label text-xs text-gray-500">Service Provider</p>
-      <p class="text-sm font-medium text-gray-800">{{ record.service_provider|default:"—" }}</p>
-    </div>
-    <div>
-      <p class="form-label text-xs text-gray-500">Status</p>
-      <p><span class="badge text-white text-xs" style="background-color:
-        {% if record.status == 'scheduled' %}#0284c7
-        {% elif record.status == 'ongoing' %}#d97706
-        {% elif record.status == 'completed' %}#16a34a
-        {% elif record.status == 'cancelled' %}#dc2626
-        {% else %}#6b7280{% endif %};">{{ record.get_status_display }}</span></p>
-    </div>
-    <div>
-      <p class="form-label text-xs text-gray-500">Created At</p>
-      <p class="text-sm font-medium text-gray-800">{{ record.created_at|date:"M d, Y H:i" }}</p>
-    </div>
-    <div class="col-span-2">
-      <p class="form-label text-xs text-gray-500">Description</p>
-      <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ record.description|default:"—" }}</p>
-    </div>
-    {% if record.remarks %}
-    <div class="col-span-2">
-      <p class="form-label text-xs text-gray-500">Remarks</p>
-      <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ record.remarks }}</p>
+
+    {% if record.is_overdue %}
+    <div class="mb-5 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+      <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span class="text-sm font-medium text-red-700">Next service date ({{ record.next_service_date|date:"M d, Y" }}) is overdue.</span>
     </div>
     {% endif %}
-  </div>
-  <div class="flex items-center justify-end mt-6 pt-4 border-t border-gray-200">
-    <button type="button" @click="document.body.dispatchEvent(new Event('closeModal', { bubbles: true }))" class="btn-secondary">Close</button>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div>
+        <p class="text-xs text-muted mb-0.5">Truck</p>
+        <p class="text-sm font-semibold text-gray-900">{{ record.truck.plate_number }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-muted mb-0.5">Maintenance Type</p>
+        <p class="text-sm font-semibold text-gray-900">{{ record.get_maintenance_type_display }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-muted mb-0.5">Service Date</p>
+        <p class="text-sm font-semibold text-gray-900">{{ record.service_date|date:"M d, Y" }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-muted mb-0.5">Next Service Date</p>
+        <p class="text-sm font-semibold {% if record.is_overdue %}text-red-600{% else %}text-gray-900{% endif %}">
+          {{ record.next_service_date|date:"M d, Y"|default:"—" }}
+          {% if record.is_overdue %}(Overdue){% endif %}
+        </p>
+      </div>
+      <div>
+        <p class="text-xs text-muted mb-0.5">Cost</p>
+        <p class="text-sm font-semibold text-gray-900">{% if record.cost %}₱{{ record.cost|floatformat:2|intcomma }}{% else %}—{% endif %}</p>
+      </div>
+      <div>
+        <p class="text-xs text-muted mb-0.5">Service Provider</p>
+        <p class="text-sm font-semibold text-gray-900">{{ record.service_provider|default:"—" }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-muted mb-0.5">Created At</p>
+        <p class="text-sm font-semibold text-gray-900">{{ record.created_at|date:"M d, Y H:i" }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-muted mb-0.5">Updated At</p>
+        <p class="text-sm font-semibold text-gray-900">{{ record.updated_at|date:"M d, Y H:i"|default:"—" }}</p>
+      </div>
+      <div class="md:col-span-2">
+        <div class="border-t border-gray-100 pt-4 mt-1">
+          <p class="text-xs text-muted mb-1.5">Description</p>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ record.description|default:"No description." }}</p>
+          </div>
+        </div>
+      </div>
+      {% if record.remarks %}
+      <div class="md:col-span-2">
+        <div class="border-t border-gray-100 pt-4 mt-1">
+          <p class="text-xs text-muted mb-1.5">Remarks</p>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ record.remarks }}</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
   </div>
 </div>

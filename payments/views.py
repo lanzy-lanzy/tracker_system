@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django_ratelimit.decorators import ratelimit
 
 from .models import Payment
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def payment_list_view(request):
     payments = Payment.objects.all().select_related("trip", "client")
     total_collected = payments.filter(payment_status="paid").aggregate(Sum("amount_paid"))["amount_paid__sum"] or 0
-    total_outstanding = payments.aggregate(Sum("balance"))["balance__sum"] or 0
+    total_outstanding = payments.annotate(balance=F("amount_due") - F("amount_paid")).aggregate(Sum("balance"))["balance__sum"] or 0
     return render(request, "payments/payment_list.html", {
         "payments": payments,
         "total_collected": total_collected,
