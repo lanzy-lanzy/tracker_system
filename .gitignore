@@ -8,6 +8,8 @@ __pycache__/
 venv/
 node_modules/
 db.sqlite3
+db.sqlite3-*
+backups/
 media/
 public/static/
 staticfiles/

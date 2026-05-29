@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Database Backup{% endblock %}
+{% block page_title %}Database Backup{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="card p-6">
+            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Create Backup</h3>
+            <p class="text-sm text-gray-500 mb-4">Save a snapshot of the current database to the server.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <button type="submit" class="btn-primary w-full text-sm">Create Backup Now</button>
+            </form>
+        </div>
+
+        <div class="card p-6">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Import Backup</h3>
+            <p class="text-sm text-gray-500 mb-4">Upload a .sqlite3 file to the server's backup folder.</p>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="import">
+                <input type="file" name="backup_file" accept=".sqlite3" required
+                       class="form-input text-sm mb-3 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-[#810B38] file:text-white file:cursor-pointer">
+                <button type="submit" class="btn-primary w-full text-sm">Upload Backup</button>
+            </form>
+        </div>
+
+        <div class="card p-6">
+            <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Restore</h3>
+            <p class="text-sm text-gray-500 mb-4">Replace the current database with a backup from the list below.</p>
+            <p class="text-xs text-amber-600 font-medium">⚠ Current data is auto-backed up before restore.</p>
+        </div>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">Backup Files</h3>
+            <p class="text-xs text-gray-400">Stored in: <code class="font-mono">backups/</code></p>
+        </div>
+        {% if backups %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="table-header">
+                    <tr>
+                        <th class="text-left">Filename</th>
+                        <th class="text-left">Size</th>
+                        <th class="text-left">Created</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in backups %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="table-cell font-mono text-sm">{{ b.name }}</td>
+                        <td class="table-cell text-sm">{{ b.size_display }}</td>
+                        <td class="table-cell text-sm">{{ b.modified|date:"M d, Y H:i:s" }}</td>
+                        <td class="table-cell text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <a href="{% url 'admin_backup_export' b.name %}"
+                                   class="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span>Export</span>
+                                </a>
+                                <form method="post" class="inline" onsubmit="return confirm('Restore {{ b.name }}? Current data will be backed up automatically.')">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="restore">
+                                    <input type="hidden" name="filename" value="{{ b.name }}">
+                                    <button type="submit"
+                                            class="inline-flex items-center space-x-1 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                        </svg>
+                                        <span>Restore</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-6 text-center text-gray-400">No backups yet. Create your first backup above.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Count
 from django.http import HttpResponse
 from django.urls import reverse
+from django_ratelimit.decorators import ratelimit
 from .models import Truck
 from core.decorators import role_required
 from maintenance.models import Maintenance
@@ -16,6 +17,7 @@ def truck_list_view(request):
     return render(request, "trucks/truck_list.html", {"trucks": trucks})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def truck_create_view(request):
@@ -53,6 +55,7 @@ def truck_detail_view(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def truck_edit_view(request, pk):
@@ -74,6 +77,7 @@ def truck_edit_view(request, pk):
     return render(request, "trucks/truck_form.html", {"truck": truck})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def truck_delete_view(request, pk):
@@ -85,6 +89,7 @@ def truck_delete_view(request, pk):
     return render(request, "trucks/truck_confirm_delete.html", {"truck": truck})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def truck_modal_create(request):
@@ -121,6 +126,7 @@ def truck_modal_create(request):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def truck_modal_edit(request, pk):
@@ -157,6 +163,7 @@ def truck_modal_detail(request, pk):
     return render(request, "trucks/_detail.html", {"truck": truck})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def truck_modal_delete(request, pk):

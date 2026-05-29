@@ -36,6 +36,7 @@ def profile_view(request):
     return render(request, "accounts/profile.html", {"profile_user": request.user})
 
 
+@ratelimit(key="ip", rate="10/m", method="POST", block=True)
 @login_required
 def profile_edit_view(request):
     if request.method == "POST":
@@ -62,6 +63,7 @@ def user_list_view(request):
     return render(request, "accounts/user_list.html", {"users": users})
 
 
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 @login_required
 def user_create_view(request):
     if request.user.profile.role not in ["admin"]:
@@ -83,6 +85,7 @@ def user_create_view(request):
     return render(request, "accounts/user_form.html")
 
 
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 @login_required
 def user_edit_view(request, pk):
     if request.user.profile.role not in ["admin"]:

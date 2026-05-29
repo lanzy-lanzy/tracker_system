@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
+from django_ratelimit.decorators import ratelimit
 from django.template.loader import render_to_string
 from .models import Trip
 from core.decorators import role_required
@@ -18,6 +19,7 @@ def trip_list_view(request):
     return render(request, "trips/trip_list.html", {"trips": trips})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def trip_create_view(request):
@@ -59,6 +61,7 @@ def trip_detail_view(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def trip_edit_view(request, pk):
@@ -89,6 +92,7 @@ def trip_edit_view(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def trip_delete_view(request, pk):
@@ -100,6 +104,7 @@ def trip_delete_view(request, pk):
     return render(request, "trips/trip_confirm_delete.html", {"trip": trip})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def trip_update_status(request, pk, status):
@@ -120,6 +125,7 @@ def trip_update_status(request, pk, status):
     return redirect("trip_detail", pk=trip.pk)
 
 
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def trip_upload_proof(request, pk):
@@ -131,6 +137,7 @@ def trip_upload_proof(request, pk):
     return redirect("trip_detail", pk=trip.pk)
 
 
+@ratelimit(key="ip", rate="30/m", method="GET", block=True)
 @login_required
 def trip_filter_view(request):
     status = request.GET.get("status", "")
@@ -141,6 +148,7 @@ def trip_filter_view(request):
     return HttpResponse(html)
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def trip_modal_create(request):
@@ -188,6 +196,7 @@ def trip_modal_create(request):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def trip_modal_edit(request, pk):
@@ -232,6 +241,7 @@ def trip_modal_detail(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def trip_modal_delete(request, pk):
@@ -248,6 +258,7 @@ def trip_modal_delete(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="30/m", method="GET", block=True)
 @login_required
 def trip_search_view(request):
     q = request.GET.get("q", "")

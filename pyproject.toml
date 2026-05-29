@@ -13,6 +13,7 @@ dependencies = [
   "reportlab==4.5.1",
   "whitenoise==6.11.0",
   "python-dotenv>=1.2.2",
+  "django-ipware>=7.0.1",
 ]
 
 [tool.vercel]

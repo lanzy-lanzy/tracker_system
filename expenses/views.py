@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
+from django_ratelimit.decorators import ratelimit
 from .models import Expense
 from core.decorators import role_required
 from trips.models import Trip
@@ -19,6 +20,7 @@ def expense_list_view(request):
     return render(request, "expenses/expense_list.html", {"expenses": expenses})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def expense_create_view(request):
@@ -39,6 +41,7 @@ def expense_create_view(request):
     return render(request, "expenses/expense_form.html", {"trips": trips, "trucks": trucks})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def expense_edit_view(request, pk):
@@ -62,6 +65,7 @@ def expense_edit_view(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def expense_delete_view(request, pk):
@@ -73,6 +77,7 @@ def expense_delete_view(request, pk):
     return render(request, "expenses/expense_confirm_delete.html", {"expense": expense})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def expense_modal_create(request):
@@ -105,6 +110,7 @@ def expense_modal_create(request):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def expense_modal_edit(request, pk):
@@ -138,6 +144,7 @@ def expense_modal_edit(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def expense_modal_delete(request, pk):

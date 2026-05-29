@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
 from django.db.models import Sum
+from django_ratelimit.decorators import ratelimit
 
 from .models import Payment
 from core.decorators import role_required
@@ -27,6 +28,7 @@ def payment_list_view(request):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def payment_create_view(request):
@@ -48,6 +50,7 @@ def payment_create_view(request):
     return render(request, "payments/payment_form.html", {"trips": trips, "clients": clients})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def payment_edit_view(request, pk):
@@ -70,6 +73,7 @@ def payment_edit_view(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def payment_delete_view(request, pk):
@@ -81,6 +85,7 @@ def payment_delete_view(request, pk):
     return render(request, "payments/payment_confirm_delete.html", {"payment": payment})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def payment_modal_create(request):
@@ -114,6 +119,7 @@ def payment_modal_create(request):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def payment_modal_edit(request, pk):
@@ -146,6 +152,7 @@ def payment_modal_edit(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def payment_modal_delete(request, pk):

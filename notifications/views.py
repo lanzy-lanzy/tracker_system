@@ -1,15 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django_ratelimit.decorators import ratelimit
 from .models import Notification
 
 
+@ratelimit(key="ip", rate="20/m", method="GET", block=True)
 @login_required
 def notification_list_view(request):
     notifications = Notification.objects.filter(user=request.user)
     return render(request, "notifications/notification_list.html", {"notifications": notifications})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 def notification_mark_read(request, pk):
     notification = get_object_or_404(Notification, pk=pk, user=request.user)
@@ -20,6 +23,7 @@ def notification_mark_read(request, pk):
     return redirect(request.META.get("HTTP_REFERER", "notification_list"))
 
 
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 @login_required
 def notification_mark_all_read(request):
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
@@ -28,6 +32,7 @@ def notification_mark_all_read(request):
     return redirect("notification_list")
 
 
+@ratelimit(key="ip", rate="20/m", method="GET", block=True)
 @login_required
 def unread_count(request):
     count = Notification.objects.filter(user=request.user, is_read=False).count()

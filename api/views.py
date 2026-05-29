@@ -5,6 +5,8 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -81,10 +83,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all().select_related("profile")
     serializer_class = UserSerializer
     permission_classes = [IsAdminRole]
+    throttle_scope = "crud"
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
+    throttle_scope = "crud"
 
     def get_queryset(self):
         queryset = Profile.objects.select_related("user")
@@ -97,23 +101,27 @@ class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
+    throttle_scope = "crud"
 
 
 class TruckViewSet(viewsets.ModelViewSet):
     queryset = Truck.objects.all()
     serializer_class = TruckSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
+    throttle_scope = "crud"
 
 
 class DriverViewSet(viewsets.ModelViewSet):
     queryset = Driver.objects.select_related("user", "assigned_truck")
     serializer_class = DriverSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
+    throttle_scope = "crud"
 
 
 class TripViewSet(viewsets.ModelViewSet):
     serializer_class = TripSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrDispatcher]
+    throttle_scope = "crud"
 
     def get_queryset(self):
         queryset = Trip.objects.select_related("client", "assigned_truck", "assigned_driver", "created_by")
@@ -156,28 +164,33 @@ class CargoViewSet(viewsets.ModelViewSet):
     queryset = Cargo.objects.select_related("trip")
     serializer_class = CargoSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrDispatcher]
+    throttle_scope = "crud"
 
 
 class MaintenanceViewSet(viewsets.ModelViewSet):
     queryset = Maintenance.objects.select_related("truck")
     serializer_class = MaintenanceSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrDispatcher]
+    throttle_scope = "crud"
 
 
 class ExpenseViewSet(viewsets.ModelViewSet):
     queryset = Expense.objects.select_related("trip", "truck")
     serializer_class = ExpenseSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
+    throttle_scope = "crud"
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.select_related("trip", "client")
     serializer_class = PaymentSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminOrReadOnly]
+    throttle_scope = "crud"
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = NotificationSerializer
+    throttle_scope = "crud"
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user)
@@ -191,6 +204,12 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class DashboardSummaryView(APIView):
+    throttle_scope = "dashboard"
+
+    @method_decorator(ratelimit(key="ip", rate="10/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         today = timezone.now().date()
         monthly_revenue = Payment.objects.filter(
@@ -229,6 +248,12 @@ class DashboardSummaryView(APIView):
 
 
 class ChoiceMetadataView(APIView):
+    throttle_scope = "crud"
+
+    @method_decorator(ratelimit(key="ip", rate="30/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         return Response(
             {
@@ -252,6 +277,12 @@ class ChoiceMetadataView(APIView):
 
 
 class DailyTripReportView(APIView):
+    throttle_scope = "reports"
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         start, end = get_date_range(request)
         trips = Trip.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
@@ -270,6 +301,12 @@ class DailyTripReportView(APIView):
 
 
 class MonthlyTripReportView(APIView):
+    throttle_scope = "reports"
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         start, end = get_date_range(request)
         trips = Trip.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
@@ -287,6 +324,12 @@ class MonthlyTripReportView(APIView):
 
 
 class TruckUtilizationReportView(APIView):
+    throttle_scope = "reports"
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         trucks = Truck.objects.annotate(
             total_trips=Count("trips"),
@@ -312,6 +355,12 @@ class TruckUtilizationReportView(APIView):
 
 
 class DriverPerformanceReportView(APIView):
+    throttle_scope = "reports"
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         drivers = Driver.objects.annotate(
             total_trips=Count("trips"),
@@ -339,6 +388,12 @@ class DriverPerformanceReportView(APIView):
 
 
 class MaintenanceReportView(APIView):
+    throttle_scope = "reports"
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         start, end = get_date_range(request)
         records = Maintenance.objects.filter(service_date__gte=start, service_date__lte=end)
@@ -354,6 +409,12 @@ class MaintenanceReportView(APIView):
 
 
 class ExpenseReportView(APIView):
+    throttle_scope = "reports"
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         start, end = get_date_range(request)
         expenses = Expense.objects.filter(date__gte=start, date__lte=end)
@@ -373,6 +434,12 @@ class ExpenseReportView(APIView):
 
 
 class PaymentReportView(APIView):
+    throttle_scope = "reports"
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         start, end = get_date_range(request)
         payments = Payment.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
@@ -394,6 +461,12 @@ class PaymentReportView(APIView):
 
 
 class ProfitLossReportView(APIView):
+    throttle_scope = "reports"
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="GET", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get(self, request):
         start, end = get_date_range(request)
         revenue = Payment.objects.filter(
@@ -416,14 +489,31 @@ class ProfitLossReportView(APIView):
         )
 
 
+@ratelimit(key="ip", rate="10/m", method="GET", block=True)
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def unread_notification_count(request):
     return Response({"count": Notification.objects.filter(user=request.user, is_read=False).count()})
 
 
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def mark_all_notifications_read(request):
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return Response({"unread_count": 0})
+
+
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+
+class RateLimitedTokenObtainPairView(TokenObtainPairView):
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="POST", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+
+class RateLimitedTokenRefreshView(TokenRefreshView):
+    @method_decorator(ratelimit(key="ip", rate="10/m", method="POST", block=True))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)

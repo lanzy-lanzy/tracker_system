@@ -107,6 +107,30 @@
                 </div>
             </a>
         </div>
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{% url 'admin_audit_log' %}" class="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-800">Audit Log</p>
+                    <p class="text-sm text-gray-500">Track all changes made in the system</p>
+                </div>
+            </a>
+            <a href="{% url 'admin_backup' %}" class="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-800">Database Backup</p>
+                    <p class="text-sm text-gray-500">Backup and restore SQLite database</p>
+                </div>
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

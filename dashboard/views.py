@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum
 from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
 from trucks.models import Truck
 from drivers.models import Driver
 from trips.models import Trip
@@ -11,6 +12,7 @@ from expenses.models import Expense
 from notifications.models import Notification
 
 
+@ratelimit(key="ip", rate="20/m", method="GET", block=True)
 @login_required
 def dashboard_view(request):
     today = timezone.now().date()
@@ -44,18 +46,21 @@ def dashboard_view(request):
     return render(request, "dashboard/dashboard.html", context)
 
 
+@ratelimit(key="ip", rate="30/m", method="GET", block=True)
 @login_required
 def trip_activity_widget(request):
     trips = Trip.objects.all()[:5]
     return render(request, "dashboard/widgets/trip_activity.html", {"trips": trips})
 
 
+@ratelimit(key="ip", rate="30/m", method="GET", block=True)
 @login_required
 def maintenance_alerts_widget(request):
     alerts = Maintenance.objects.filter(status__in=["scheduled", "ongoing"]).order_by("service_date")[:5]
     return render(request, "dashboard/widgets/maintenance_alerts.html", {"alerts": alerts})
 
 
+@ratelimit(key="ip", rate="30/m", method="GET", block=True)
 @login_required
 def payment_summary_widget(request):
     payments = Payment.objects.all()[:5]

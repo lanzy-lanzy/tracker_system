@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
+from django_ratelimit.decorators import ratelimit
 from .models import Maintenance
 from core.decorators import role_required
 from trucks.models import Truck
@@ -18,6 +19,7 @@ def maintenance_list_view(request):
     return render(request, "maintenance/maintenance_list.html", {"records": records})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def maintenance_create_view(request):
@@ -45,6 +47,7 @@ def maintenance_detail_view(request, pk):
     return render(request, "maintenance/maintenance_detail.html", {"record": record})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def maintenance_edit_view(request, pk):
@@ -66,6 +69,7 @@ def maintenance_edit_view(request, pk):
     return render(request, "maintenance/maintenance_form.html", {"record": record, "trucks": trucks})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def maintenance_delete_view(request, pk):
@@ -77,6 +81,7 @@ def maintenance_delete_view(request, pk):
     return render(request, "maintenance/maintenance_confirm_delete.html", {"record": record})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def maintenance_modal_create(request):
@@ -110,6 +115,7 @@ def maintenance_modal_create(request):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def maintenance_modal_edit(request, pk):
@@ -149,6 +155,7 @@ def maintenance_modal_detail(request, pk):
     return render(request, "maintenance/_detail.html", {"record": record})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def maintenance_modal_delete(request, pk):

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
+from django_ratelimit.decorators import ratelimit
 from .models import Cargo
 from core.decorators import role_required
 from trips.models import Trip
@@ -18,6 +19,7 @@ def cargo_list_view(request):
     return render(request, "cargo/cargo_list.html", {"cargo_items": cargo_items})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def cargo_create_view(request):
@@ -38,6 +40,7 @@ def cargo_create_view(request):
     return render(request, "cargo/cargo_form.html", {"trips": trips})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def cargo_edit_view(request, pk):
@@ -58,6 +61,7 @@ def cargo_edit_view(request, pk):
     return render(request, "cargo/cargo_form.html", {"cargo": cargo, "trips": trips})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def cargo_delete_view(request, pk):
@@ -69,6 +73,7 @@ def cargo_delete_view(request, pk):
     return render(request, "cargo/cargo_confirm_delete.html", {"cargo": cargo})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def cargo_modal_create(request):
@@ -101,6 +106,7 @@ def cargo_modal_create(request):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def cargo_modal_edit(request, pk):
@@ -133,6 +139,7 @@ def cargo_modal_edit(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def cargo_modal_delete(request, pk):

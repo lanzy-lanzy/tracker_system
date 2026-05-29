@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponse
 from django.urls import reverse
+from django_ratelimit.decorators import ratelimit
 from .models import Driver
 from core.decorators import role_required
 from trips.models import Trip
@@ -16,6 +17,7 @@ def driver_list_view(request):
     return render(request, "drivers/driver_list.html", {"drivers": drivers})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def driver_create_view(request):
@@ -48,6 +50,7 @@ def driver_detail_view(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def driver_edit_view(request, pk):
@@ -70,6 +73,7 @@ def driver_edit_view(request, pk):
     return render(request, "drivers/driver_form.html", {"driver": driver, "trucks": trucks})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def driver_delete_view(request, pk):
@@ -81,6 +85,7 @@ def driver_delete_view(request, pk):
     return render(request, "drivers/driver_confirm_delete.html", {"driver": driver})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def driver_modal_create(request):
@@ -110,6 +115,7 @@ def driver_modal_create(request):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def driver_modal_edit(request, pk):
@@ -147,6 +153,7 @@ def driver_modal_detail(request, pk):
     return render(request, "drivers/_detail.html", {"driver": driver})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def driver_modal_delete(request, pk):

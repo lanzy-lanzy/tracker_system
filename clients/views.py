@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.urls import reverse
+from django_ratelimit.decorators import ratelimit
 from .models import Client
 from core.decorators import role_required
 from trips.models import Trip
@@ -15,6 +16,7 @@ def client_list_view(request):
     return render(request, "clients/client_list.html", {"clients": clients})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def client_create_view(request):
@@ -45,6 +47,7 @@ def client_detail_view(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def client_edit_view(request, pk):
@@ -63,6 +66,7 @@ def client_edit_view(request, pk):
     return render(request, "clients/client_form.html", {"client": client})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def client_delete_view(request, pk):
@@ -74,6 +78,7 @@ def client_delete_view(request, pk):
     return render(request, "clients/client_confirm_delete.html", {"client": client})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def client_modal_create(request):
@@ -100,6 +105,7 @@ def client_modal_create(request):
     return render(request, "clients/_form.html", {"action_url": "client_modal_create"})
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def client_modal_edit(request, pk):
@@ -136,6 +142,7 @@ def client_modal_detail(request, pk):
     })
 
 
+@ratelimit(key="ip", rate="15/m", method="POST", block=True)
 @login_required
 @role_required("admin", "dispatcher")
 def client_modal_delete(request, pk):
