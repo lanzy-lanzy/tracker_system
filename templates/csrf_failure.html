@@ -6,61 +6,33 @@
     <title>Trucking Tracker - CSRF Error</title>
     {% load static %}
     <link rel="icon" type="image/x-icon" href="{% static 'favicon/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <script src="{% static 'js/theme-switcher.js' %}"></script>
     <script src="{% static 'vendor/tailwind.min.js' %}"></script>
-    <style>
-        :root {
-            --primary: #810B38;
-            --primary-light: #9C0E43;
-            --primary-dark: #5C0828;
-            --cream: #F1E2D1;
-            --beige: #DCC3AA;
-            --dark: #541A1A;
-        }
-        body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #FEFAF6;
-        }
-        .card {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-        }
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-            padding: 0.5rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-        }
-    </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4 app-bg">
     <div class="w-full max-w-md">
         <div class="text-center mb-8">
             <img src="{% static 'logo/logo and names.png' %}" alt="Trucking Tracker" class="h-16 mx-auto mb-4 object-contain">
-            <p class="text-[#541A1A]/60 text-sm">Fleet Management System</p>
+            <p class="text-muted text-sm">Fleet Management System</p>
         </div>
 
-        <div class="card p-8 text-center">
-            <div class="w-16 h-16 mx-auto mb-4 bg-orange-50 rounded-full flex items-center justify-center">
-                <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-card rounded-xl shadow-card p-8 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 bg-warning-soft rounded-full flex items-center justify-center">
+                <svg class="w-8 h-8 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
             </div>
 
-            <h1 class="text-xl font-bold text-[#541A1A] mb-2">Session Expired</h1>
+            <h1 class="text-xl font-bold text-primary mb-2">Session Expired</h1>
 
-            <p class="text-sm text-gray-600 mb-6">
+            <p class="text-sm text-secondary mb-6">
                 Your session has expired or the form submission could not be verified. Please reload the page and try again.
             </p>
 
-            <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 text-left">
-                <p class="text-xs font-semibold text-amber-800 mb-1">This usually happens when:</p>
-                <ul class="text-xs text-amber-700 space-y-1 list-disc list-inside">
+            <div class="bg-warning-soft border border-warning/20 rounded-lg px-4 py-3 mb-6 text-left">
+                <p class="text-xs font-semibold text-warning mb-1">This usually happens when:</p>
+                <ul class="text-xs text-warning space-y-1 list-disc list-inside" style="opacity:0.85">
                     <li>You logged in on another tab</li>
                     <li>You left the page open for a long time</li>
                     <li>Your browser cleared cookies</li>
@@ -75,11 +47,11 @@
                     <span>Reload Page</span>
                 </a>
                 <br>
-                <a href="{% url 'login' %}" class="text-sm text-[#810B38] hover:underline">Go to Login</a>
+                <a href="{% url 'login' %}" class="text-sm text-accent hover:underline">Go to Login</a>
             </div>
         </div>
 
-        <p class="text-center text-sm text-[#541A1A]/40 mt-6">&copy; {% now "Y" %} Trucking Tracker. All rights reserved.</p>
+        <p class="text-center text-sm text-muted mt-6">&copy; {% now "Y" %} Trucking Tracker. All rights reserved.</p>
     </div>
 </body>
 </html>

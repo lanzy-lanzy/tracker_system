@@ -10,6 +10,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
     <link rel="apple-touch-icon" href="{% static 'favicon/apple-touch-icon.png' %}">
     <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <script src="{% static 'js/theme-switcher.js' %}"></script>
     <script src="{% static 'vendor/tailwind.min.js' %}"></script>
     <script src="{% static 'vendor/htmx.min.js' %}"></script>
     <script defer src="{% static 'vendor/alpine.min.js' %}"></script>
@@ -17,163 +19,6 @@
     <script defer src="{% static 'js/api-client.js' %}"></script>
     {% endif %}
     <style>
-        :root {
-            --primary: #810B38;
-            --primary-light: #9C0E43;
-            --primary-dark: #5C0828;
-            --cream: #F1E2D1;
-            --beige: #DCC3AA;
-            --dark: #541A1A;
-            --success: #16a34a;
-            --warning: #d97706;
-            --danger: #dc2626;
-            --info: #0284c7;
-        }
-        body {
-            background-color: var(--cream);
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-        }
-        .sidebar-link {
-            transition: all 0.2s ease;
-        }
-        .sidebar-link:hover, .sidebar-link.active {
-            background-color: rgba(255,255,255,0.1);
-        }
-        .sidebar-link.active {
-            border-left: 3px solid white;
-        }
-        .card {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            transition: box-shadow 0.2s ease;
-        }
-        .card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .stat-card {
-            background: white;
-            border-radius: 0.75rem;
-            border-left: 4px solid var(--primary);
-            padding: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.125rem 0.625rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-            padding: 0.5rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-        }
-        .btn-secondary {
-            background-color: var(--beige);
-            color: var(--dark);
-            padding: 0.5rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .btn-secondary:hover {
-            background-color: #c9ae93;
-        }
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-            padding: 0.5rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .btn-danger:hover {
-            background-color: #b91c1c;
-        }
-        .form-input {
-            width: 100%;
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            transition: border-color 0.2s;
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(129,11,56,0.1);
-        }
-        .form-label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.25rem;
-        }
-        .table-header {
-            background-color: var(--primary);
-            color: white;
-        }
-        .table-header th {
-            padding: 0.75rem 1rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .table-cell {
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-            border-bottom: 1px solid #f3f4f6;
-        }
-        .toast-container {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 9999;
-        }
-        .modal-overlay {
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(2px);
-        }
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #6b7280;
-        }
-        [x-cloak] { display: none !important; }
-        .print-only { display: none; }
-        .htmx-indicator {
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .htmx-request .htmx-indicator {
-            opacity: 1;
-        }
-        .htmx-request.htmx-indicator {
-            opacity: 1;
-        }
-        @media (max-width: 768px) {
-            .sidebar-mobile {
-                position: fixed;
-                inset: 0;
-                z-index: 50;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-            .sidebar-mobile.open {
-                transform: translateX(0);
-            }
-        }
         @media print {
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { background: white !important; font-size: 10pt; line-height: 1.5; color: #1f2937; }
@@ -241,16 +86,16 @@
         <div x-data="{ sidebarOpen: window.innerWidth >= 768 }" class="flex h-screen overflow-hidden">
         <div x-show="sidebarOpen" x-cloak
              @keydown.escape.window="sidebarOpen = false"
-             class="sidebar-mobile md:relative md:translate-x-0 md:w-64 bg-[#810B38] text-white flex-shrink-0 overflow-y-auto"
+             class="sidebar-mobile md:relative md:translate-x-0 md:w-64 sidebar-bg text-sidebar flex-shrink-0 overflow-y-auto"
              :class="{ 'open': sidebarOpen }">
-            <div class="px-4 py-3 border-b border-white/10">
+            <div class="px-4 py-3 border-b sidebar-divider">
                 <div class="flex items-center space-x-3 h-11">
                     <div class="w-10 h-10 shrink-0">
                         <img src="{% static 'logo/tracker_logo.png' %}" alt="TT" class="w-10 h-10 object-contain rounded-lg">
                     </div>
                     <div class="min-w-0">
                         <h1 class="font-bold text-lg leading-tight truncate">Trucking Tracker</h1>
-                        <p class="text-xs text-white/60 truncate">Fleet Management</p>
+                        <p class="text-xs text-sidebar-muted truncate">Fleet Management</p>
                     </div>
                 </div>
             </div>
@@ -271,8 +116,8 @@
                         <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
-                        <a href="{% url 'truck_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'truck_list' %}active bg-white/10{% endif %}">Trucks</a>
-                        <a href="{% url 'driver_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'driver_list' %}active bg-white/10{% endif %}">Drivers</a>
+                        <a href="{% url 'truck_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'truck_list' %}active{% endif %}">Trucks</a>
+                        <a href="{% url 'driver_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'driver_list' %}active{% endif %}">Drivers</a>
                     </div>
                 </div>
 
@@ -285,9 +130,9 @@
                         <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
-                        <a href="{% url 'trip_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'trip_list' %}active bg-white/10{% endif %}">Trips</a>
-                        <a href="{% url 'cargo_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'cargo_list' %}active bg-white/10{% endif %}">Cargo</a>
-                        <a href="{% url 'client_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'client_list' %}active bg-white/10{% endif %}">Clients</a>
+                        <a href="{% url 'trip_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'trip_list' %}active{% endif %}">Trips</a>
+                        <a href="{% url 'cargo_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'cargo_list' %}active{% endif %}">Cargo</a>
+                        <a href="{% url 'client_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'client_list' %}active{% endif %}">Clients</a>
                     </div>
                 </div>
 
@@ -300,8 +145,8 @@
                         <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
-                        <a href="{% url 'expense_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'expense_list' %}active bg-white/10{% endif %}">Expenses</a>
-                        <a href="{% url 'payment_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'payment_list' %}active bg-white/10{% endif %}">Payments</a>
+                        <a href="{% url 'expense_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}">Expenses</a>
+                        <a href="{% url 'payment_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'payment_list' %}active{% endif %}">Payments</a>
                     </div>
                 </div>
 
@@ -320,17 +165,17 @@
                         <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
-                        <a href="{% url 'report_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'report_dashboard' %}active bg-white/10{% endif %}">Report Center</a>
-                        <a href="{% url 'daily_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'daily_trip_report' %}active bg-white/10{% endif %}">Daily Trips</a>
-                        <a href="{% url 'monthly_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'monthly_trip_report' %}active bg-white/10{% endif %}">Monthly Trips</a>
-                        <a href="{% url 'profit_loss_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'profit_loss_report' %}active bg-white/10{% endif %}">Profit & Loss</a>
+                        <a href="{% url 'report_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'report_dashboard' %}active{% endif %}">Report Center</a>
+                        <a href="{% url 'daily_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'daily_trip_report' %}active{% endif %}">Daily Trips</a>
+                        <a href="{% url 'monthly_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'monthly_trip_report' %}active{% endif %}">Monthly Trips</a>
+                        <a href="{% url 'profit_loss_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'profit_loss_report' %}active{% endif %}">Profit & Loss</a>
                     </div>
                 </div>
 
                 {% if user.profile.role == 'admin' %}
                 <div class="pt-4">
-                    <hr class="border-t border-white/20 mb-3">
-                    <p class="px-3 text-xs text-white/40 font-semibold uppercase tracking-wider">Administration</p>
+                    <hr class="border-t sidebar-divider mb-3">
+                    <p class="px-3 text-xs text-sidebar-muted font-semibold uppercase tracking-wider" style="opacity:0.5">Administration</p>
                     <div x-data="{ open: {% if request.resolver_match.url_name|slice:':5' == 'admin' %}true{% else %}false{% endif %} }">
                         <button @click="open = !open" class="sidebar-link flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm mt-2 {% if request.resolver_match.url_name|slice:':5' == 'admin' %}active bg-white/10{% endif %}">
                             <span class="flex items-center space-x-3">
@@ -340,27 +185,27 @@
                             <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                         <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1">
-                            <a href="{% url 'admin_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'admin_dashboard' %}active bg-white/10{% endif %}">
+                            <a href="{% url 'admin_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
                                 <span>Dashboard</span>
                             </a>
-                            <a href="{% url 'admin_sessions' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'admin_sessions' %}active bg-white/10{% endif %}">
+                            <a href="{% url 'admin_sessions' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'admin_sessions' %}active{% endif %}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                 <span>Sessions</span>
                             </a>
-                            <a href="{% url 'admin_tokens' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'admin_tokens' %}active bg-white/10{% endif %}">
+                            <a href="{% url 'admin_tokens' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'admin_tokens' %}active{% endif %}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
                                 <span>Tokens</span>
                             </a>
-                            <a href="{% url 'user_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'user_list' %}active bg-white/10{% endif %}">
+                            <a href="{% url 'user_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                                 <span>Users</span>
                             </a>
-                            <a href="{% url 'admin_audit_log' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'admin_audit_log' %}active bg-white/10{% endif %}">
+                            <a href="{% url 'admin_audit_log' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'admin_audit_log' %}active{% endif %}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                                 <span>Audit Log</span>
                             </a>
-                            <a href="{% url 'admin_backup' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-white/80 hover:text-white {% if request.resolver_match.url_name == 'admin_backup' %}active bg-white/10{% endif %}">
+                            <a href="{% url 'admin_backup' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'admin_backup' %}active{% endif %}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
                                 <span>Backup</span>
                             </a>
@@ -372,67 +217,86 @@
         </div>
 
         <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="bg-white shadow-sm border-b border-gray-200">
+            <header class="navbar-bg shadow-sm border-b border-theme">
                 <div class="flex items-center justify-between px-4 py-3">
                     <div class="flex items-center space-x-2 min-w-0">
-                        <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 shrink-0">
+                        <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg hover:bg-surface text-secondary shrink-0">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                         </button>
                         <div class="min-w-0">
-                            <h2 class="text-lg font-semibold text-[#541A1A] truncate">{% block page_title %}Dashboard{% endblock %}</h2>
+                            <h2 class="text-lg font-semibold text-primary truncate">{% block page_title %}Dashboard{% endblock %}</h2>
                         </div>
                     </div>
 
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-1.5">
+                        <!-- Theme Switcher -->
                         <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open" @click.outside="open = false" class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-600">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                                {% if unread_notifications_count > 0 %}
-                                <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ unread_notifications_count }}</span>
-                                {% endif %}
+                            <button @click="open = !open" @click.outside="open = false" class="p-2 rounded-lg hover:bg-surface text-secondary" title="Switch theme">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
                             </button>
-                            <div x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-40">
-                                <div class="p-3 border-b border-gray-100 flex justify-between items-center">
-                                    <h3 class="font-semibold text-sm text-gray-800">Notifications</h3>
-                                    <a href="{% url 'notification_mark_all_read' %}" class="text-xs text-[#810B38] hover:underline">Mark all read</a>
+                            <div x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 mt-2 w-44 bg-card rounded-xl shadow-dropdown border border-theme overflow-hidden z-40">
+                                <div class="p-1.5 space-y-0.5">
+                                    <template x-for="t in window.trackerTheme.themes" :key="t">
+                                        <button @click="window.trackerTheme.set(t); open = false"
+                                                class="flex items-center space-x-2.5 w-full px-3 py-2 rounded-lg text-sm text-secondary hover:bg-surface transition-colors"
+                                                :class="{ 'bg-accent-soft text-accent': window.trackerTheme.current() === t }">
+                                            <span x-html="window.trackerTheme.icons[t]"></span>
+                                            <span x-text="window.trackerTheme.labels[t]"></span>
+                                        </button>
+                                    </template>
                                 </div>
-                                <div class="max-h-80 overflow-y-auto">
-                                    {% for n in unread_notifications %}
-                                    <a href="{{ n.link|default:'#' }}" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-50" rel="noopener noreferrer">
-                                        <p class="text-sm font-medium text-gray-800">{{ n.title }}</p>
-                                        <p class="text-xs text-gray-500 mt-0.5">{{ n.message|truncatewords:10 }}</p>
-                                        <p class="text-xs text-gray-400 mt-1">{{ n.created_at|timesince }} ago</p>
-                                    </a>
-                                    {% empty %}
-                                    <div class="px-4 py-8 text-center text-sm text-gray-400">No new notifications</div>
-                                    {% endfor %}
-                                </div>
-                                <a href="{% url 'notification_list' %}" class="block p-3 text-center text-sm text-[#810B38] hover:bg-gray-50 font-medium">View all notifications</a>
                             </div>
                         </div>
 
                         <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open" @click.outside="open = false" class="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100">
-                                <div class="w-8 h-8 bg-[#810B38] rounded-full flex items-center justify-center text-white text-sm font-bold">
+                            <button @click="open = !open" @click.outside="open = false" class="relative p-2 rounded-lg hover:bg-surface text-secondary">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                {% if unread_notifications_count > 0 %}
+                                <span class="absolute -top-1 -right-1 w-5 h-5 bg-danger text-white text-xs rounded-full flex items-center justify-center font-bold">{{ unread_notifications_count }}</span>
+                                {% endif %}
+                            </button>
+                            <div x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 mt-2 w-80 bg-card rounded-xl shadow-dropdown border border-theme overflow-hidden z-40">
+                                <div class="p-3 border-b border-light flex justify-between items-center">
+                                    <h3 class="font-semibold text-sm text-primary">Notifications</h3>
+                                    <a href="{% url 'notification_mark_all_read' %}" class="text-xs text-accent hover:underline">Mark all read</a>
+                                </div>
+                                <div class="max-h-80 overflow-y-auto">
+                                    {% for n in unread_notifications %}
+                                    <a href="{{ n.link|default:'#' }}" class="block px-4 py-3 hover:bg-surface border-b border-light" rel="noopener noreferrer">
+                                        <p class="text-sm font-medium text-primary">{{ n.title }}</p>
+                                        <p class="text-xs text-secondary mt-0.5">{{ n.message|truncatewords:10 }}</p>
+                                        <p class="text-xs text-muted mt-1">{{ n.created_at|timesince }} ago</p>
+                                    </a>
+                                    {% empty %}
+                                    <div class="px-4 py-8 text-center text-sm text-muted">No new notifications</div>
+                                    {% endfor %}
+                                </div>
+                                <a href="{% url 'notification_list' %}" class="block p-3 text-center text-sm text-accent hover:bg-surface font-medium">View all notifications</a>
+                            </div>
+                        </div>
+
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" @click.outside="open = false" class="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-surface">
+                                <div class="w-8 h-8 accent-bg rounded-full flex items-center justify-center text-sm font-bold">
                                     {{ user.first_name|first|default:user.username|first|upper }}
                                 </div>
-                                <span class="hidden md:block text-sm font-medium text-gray-700">{{ user.get_full_name|default:user.username }}</span>
-                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <span class="hidden md:block text-sm font-medium text-secondary">{{ user.get_full_name|default:user.username }}</span>
+                                <svg class="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
-                            <div x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-40">
-                                <div class="px-4 py-3 border-b border-gray-100">
-                                    <p class="text-sm font-medium text-gray-800">{{ user.get_full_name|default:user.username }}</p>
-                                    <p class="text-xs text-gray-500">{{ user.profile.get_role_display }}</p>
+                            <div x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 mt-2 w-56 bg-card rounded-xl shadow-dropdown border border-theme overflow-hidden z-40">
+                                <div class="px-4 py-3 border-b border-light">
+                                    <p class="text-sm font-medium text-primary">{{ user.get_full_name|default:user.username }}</p>
+                                    <p class="text-xs text-secondary">{{ user.profile.get_role_display }}</p>
                                 </div>
                                 <div class="py-1">
-                                    <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
-                                    <a href="{% url 'profile_edit' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Settings</a>
+                                    <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-secondary hover:bg-surface">Profile</a>
+                                    <a href="{% url 'profile_edit' %}" class="block px-4 py-2 text-sm text-secondary hover:bg-surface">Settings</a>
                                     {% if user.is_superuser %}
-                                    <a href="/admin/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Admin Panel</a>
+                                    <a href="/admin/" class="block px-4 py-2 text-sm text-secondary hover:bg-surface">Admin Panel</a>
                                     {% endif %}
                                 </div>
-                                <div class="border-t border-gray-100 py-1">
-                                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Logout</a>
+                                <div class="border-t border-light py-1">
+                                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-danger hover:bg-danger-soft">Logout</a>
                                 </div>
                             </div>
                         </div>
@@ -473,13 +337,13 @@
              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
              x-transition:leave-end="opacity-0 translate-y-4 scale-95"
              class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto" @click.stop>
+            <div class="relative bg-card rounded-2xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto" @click.stop>
                 <div id="modal-content"></div>
             </div>
         </div>
     </div>
     {% else %}
-    <div class="min-h-screen flex items-center justify-center bg-[#F1E2D1]">
+    <div class="min-h-screen flex items-center justify-center app-bg">
         {% block auth_content %}{% endblock %}
     </div>
     {% endif %}
