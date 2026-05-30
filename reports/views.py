@@ -446,7 +446,6 @@ def profit_loss_pdf(request):
     RED_BAD = HexColor("#DC2626")
     profit_color = GREEN_OK if profit >= 0 else RED_BAD
     profit_label = "Net Profit" if profit >= 0 else "Net Loss"
-    margin = ((profit / revenue) * 100) if revenue > 0 else 0
 
     elements.append(portrait_multi_statRow(s, [
         ("Total Revenue", php(revenue)),
@@ -457,7 +456,7 @@ def profit_loss_pdf(request):
 
     profit_style = ParagraphStyle("PV", parent=s["kpi_value"], textColor=profit_color)
     summary_data = [
-        [Paragraph("Profit Margin", s["kpi_label"]), Paragraph(f"{margin:.1f}%", profit_style)],
+        [Paragraph("Margin Amount", s["kpi_label"]), Paragraph(php(profit), profit_style)],
     ]
     tw = PAGE_W_P - PORTRAIT_MARGIN * 2
     summary_tbl = Table(summary_data, colWidths=[tw])

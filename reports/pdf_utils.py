@@ -233,7 +233,8 @@ def portrait_multi_statRow(s, stats, bg_color=None):
     value_row = []
     for label, value in stats:
         label_row.append(Paragraph(label, s["kpi_label"]))
-        value_row.append(Paragraph(str(value), s["kpi_value"]))
+        display = php(value) if isinstance(value, (int, float)) else str(value)
+        value_row.append(Paragraph(display, s["kpi_value"]))
 
     data = [label_row, value_row]
     bg = bg_color or LIGHT_BG
