@@ -318,7 +318,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-AXES_FAILURE_LIMIT = 2
-AXES_COOLOFF_TIME = timedelta(minutes=5)
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(minutes=10)
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = "axes/lockout.html"
