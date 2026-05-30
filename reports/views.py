@@ -19,7 +19,7 @@ from reportlab.lib.styles import ParagraphStyle
 from .pdf_utils import (
     portrait_style_sheet, portrait_summary_table, portrait_build_table,
     portrait_title_block, make_portrait_pdf_response, portrait_multi_statRow,
-    DARK_GRAY, MID_GRAY, BORDER_GRAY, WHITE, PRIMARY, GREEN, RED,
+    php, DARK_GRAY, MID_GRAY, BORDER_GRAY, WHITE, PRIMARY, GREEN, RED,
     PAGE_W_P, PORTRAIT_MARGIN, ACCENT_LINE, LIGHT_BG,
 )
 
@@ -336,7 +336,7 @@ def maintenance_pdf(request):
         ("Total Records", str(total_records)),
         ("Completed", str(completed)),
         ("Pending", str(pending)),
-        ("Total Cost", f"₱{total_cost:,.2f}"),
+        ("Total Cost", php(total_cost)),
     ]))
     elements.append(Spacer(1, 10))
 
@@ -347,7 +347,7 @@ def maintenance_pdf(request):
             Paragraph(r.truck.plate_number, s["tc"]),
             Paragraph(r.get_maintenance_type_display(), s["tc"]),
             Paragraph(_fmt_date(r.service_date), s["tcc"]),
-            Paragraph(f"₱{r.cost:,.2f}" if r.cost else "-", s["tcr"]),
+            Paragraph(php(r.cost) if r.cost else "-", s["tcr"]),
             Paragraph(r.get_status_display(), s["tcc"]),
         ])
     elements.append(portrait_build_table(s, headers, rows))
@@ -369,9 +369,9 @@ def expense_pdf(request):
     total_count = expenses.count()
     avg_expense = total / total_count if total_count > 0 else 0
     elements.append(portrait_multi_statRow(s, [
-        ("Total Expenses", f"₱{total:,.2f}"),
+        ("Total Expenses", php(total)),
         ("Transactions", str(total_count)),
-        ("Average", f"₱{avg_expense:,.2f}"),
+        ("Average", php(avg_expense)),
     ]))
     elements.append(Spacer(1, 10))
 
@@ -382,7 +382,7 @@ def expense_pdf(request):
             Paragraph(e.trip.reference_number if e.trip else "-", s["tc"]),
             Paragraph(e.truck.plate_number if e.truck else "-", s["tc"]),
             Paragraph(e.get_expense_type_display(), s["tcc"]),
-            Paragraph(f"₱{e.amount:,.2f}", s["tcr"]),
+            Paragraph(php(e.amount), s["tcr"]),
             Paragraph(_fmt_date(e.date), s["tcc"]),
             Paragraph(e.notes or "-", s["tc"]),
         ])
@@ -405,9 +405,9 @@ def payment_pdf(request):
     portrait_title_block(s, elements, "Payment Report", period=_range_str(start, end))
 
     elements.append(portrait_multi_statRow(s, [
-        ("Total Collected", f"₱{total_collected:,.2f}"),
-        ("Total Due", f"₱{total_due:,.2f}"),
-        ("Outstanding", f"₱{outstanding:,.2f}"),
+        ("Total Collected", php(total_collected)),
+        ("Total Due", php(total_due)),
+        ("Outstanding", php(outstanding)),
     ]))
     elements.append(Spacer(1, 10))
 
@@ -417,9 +417,9 @@ def payment_pdf(request):
         rows.append([
             Paragraph(p.trip.reference_number if p.trip else "-", s["tc"]),
             Paragraph(p.client.client_name if p.client else "-", s["tc"]),
-            Paragraph(f"₱{p.amount_due:,.2f}", s["tcr"]),
-            Paragraph(f"₱{p.amount_paid:,.2f}", s["tcr"]),
-            Paragraph(f"₱{p.amount_due - p.amount_paid:,.2f}", s["tcr"]),
+            Paragraph(php(p.amount_due), s["tcr"]),
+            Paragraph(php(p.amount_paid), s["tcr"]),
+            Paragraph(php(p.amount_due - p.amount_paid), s["tcr"]),
             Paragraph(p.get_payment_status_display(), s["tcc"]),
             Paragraph(_fmt_date(p.payment_date) if p.payment_date else "-", s["tcc"]),
             Paragraph(p.payment_method or "-", s["tcc"]),
@@ -449,9 +449,9 @@ def profit_loss_pdf(request):
     margin = ((profit / revenue) * 100) if revenue > 0 else 0
 
     elements.append(portrait_multi_statRow(s, [
-        ("Total Revenue", f"₱{revenue:,.2f}"),
-        ("Total Expenses", f"₱{expenses_total:,.2f}"),
-        (profit_label, f"₱{profit:,.2f}"),
+        ("Total Revenue", php(revenue)),
+        ("Total Expenses", php(expenses_total)),
+        (profit_label, php(profit)),
     ]))
     elements.append(Spacer(1, 10))
 

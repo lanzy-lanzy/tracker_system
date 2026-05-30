@@ -199,8 +199,15 @@ def portrait_style_sheet():
     }
 
 
+def php(value):
+    """Format a number as Philippine Peso currency (P 1,234.56)."""
+    if isinstance(value, (int, float)):
+        return f"P {value:,.2f}"
+    return str(value)
+
+
 def portrait_summary_table(s, value, label="Total"):
-    data = [[Paragraph(label, s["stat_label_accent"]), Paragraph(f"₱{value:,.2f}" if isinstance(value, (int, float)) else str(value), s["stat_value_accent"])]]
+    data = [[Paragraph(label, s["stat_label_accent"]), Paragraph(php(value), s["stat_value_accent"])]]
     tw = PAGE_W_P - PORTRAIT_MARGIN * 2
     tbl = Table(data, colWidths=[tw * 0.3, tw * 0.7])
     tbl.setStyle(TableStyle([

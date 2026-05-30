@@ -14,7 +14,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reports.pdf_utils import (
     portrait_style_sheet, portrait_summary_table, portrait_build_table,
     portrait_title_block, portrait_multi_statRow, make_portrait_pdf_response,
-    PRIMARY, DARK, BORDER, LIGHT_GRAY, DARK_GRAY, MID_GRAY, BORDER_GRAY,
+    php, PRIMARY, DARK, BORDER, LIGHT_GRAY, DARK_GRAY, MID_GRAY, BORDER_GRAY,
     WHITE, ACCENT_LINE, PAGE_W_P, PORTRAIT_MARGIN,
 )
 from .models import Expense
@@ -256,9 +256,9 @@ def expense_list_pdf(request):
     total_count = qs.count()
     avg_expense = grand_total / total_count if total_count > 0 else 0
     elements.append(portrait_multi_statRow(s, [
-        ("Total Expenses", f"₱{grand_total:,.2f}"),
+        ("Total Expenses", php(grand_total)),
         ("Transactions", str(total_count)),
-        ("Average", f"₱{avg_expense:,.2f}"),
+        ("Average", php(avg_expense)),
     ]))
     elements.append(Spacer(1, 12))
 
@@ -275,7 +275,7 @@ def expense_list_pdf(request):
         sect_total_s = ParagraphStyle("ST", parent=section_s, alignment=TA_RIGHT, textColor=MID_GRAY)
         section_header = Table(
             [[Paragraph(TYPE_LABELS.get(key, key.title()), section_s),
-              Paragraph(f"₱{section_total:,.2f}", sect_total_s)]],
+              Paragraph(php(section_total), sect_total_s)]],
             colWidths=[tbl_width * 0.6, tbl_width * 0.4],
         )
         section_header.setStyle(TableStyle([
@@ -303,7 +303,7 @@ def expense_list_pdf(request):
                 Paragraph(trip_ref, s["tc"]),
                 Paragraph(truck_plate, s["tc"]),
                 Paragraph(type_display, s["tcc"]),
-                Paragraph(f"₱{e.amount:,.2f}", s["tcr"]),
+                Paragraph(php(e.amount), s["tcr"]),
                 Paragraph(e.date.strftime("%b %d, %Y"), s["tcc"]),
                 Paragraph(e.notes or "-", s["tc"]),
             ])
@@ -333,7 +333,7 @@ def expense_list_pdf(request):
 
     elements.append(HRFlowable(width="100%", thickness=0.5, color=ACCENT_LINE, spaceAfter=4, spaceBefore=4))
     grand_s = ParagraphStyle("GT", parent=s["grand"], fontSize=10, textColor=DARK_GRAY, fontName=s["grand"].fontName, alignment=TA_RIGHT, leading=14, spaceBefore=4)
-    elements.append(Paragraph(f"Grand Total: ₱{grand_total:,.2f}", grand_s))
+    elements.append(Paragraph(f"Grand Total: {php(grand_total)}", grand_s))
 
     filename = "expense_report.pdf"
     if expense_type:
