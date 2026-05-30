@@ -121,7 +121,7 @@
                  hx-push-url="true"
                  @click="if(window.innerWidth < 768 && $event.target.closest('a[href]')) sidebarOpen = false">
                 {% if user.profile.role != 'driver' %}
-                <a href="{% url 'dashboard' %}"
+                <a href="{% url 'dashboard' %}" data-sidebar-prefetch
                    class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'dashboard' %}active bg-white/10{% endif %}"
                    @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
                    @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
@@ -131,7 +131,7 @@
                 </a>
                 {% endif %}
                 {% if user.profile.role == 'driver' %}
-                <a href="{% url 'driver_dashboard' %}"
+                <a href="{% url 'driver_dashboard' %}" data-sidebar-prefetch
                    class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'driver_dashboard' %}active bg-white/10{% endif %}"
                    @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
                    @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
@@ -154,8 +154,8 @@
                         <span class="sidebar-tooltip" style="display:none">Fleet</span>
                     </button>
                     <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
-                        <a href="{% url 'truck_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'truck_list' %}active{% endif %}">Trucks</a>
-                        <a href="{% url 'driver_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'driver_list' %}active{% endif %}">Drivers</a>
+                        <a href="{% url 'truck_list' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'truck_list' %}active{% endif %}">Trucks</a>
+                        <a href="{% url 'driver_list' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'driver_list' %}active{% endif %}">Drivers</a>
                     </div>
                 </div>
 
@@ -171,9 +171,9 @@
                         <span class="sidebar-tooltip" style="display:none">Operations</span>
                     </button>
                     <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
-                        <a href="{% url 'trip_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'trip_list' %}active{% endif %}">Trips</a>
-                        <a href="{% url 'cargo_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'cargo_list' %}active{% endif %}">Cargo</a>
-                        <a href="{% url 'client_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'client_list' %}active{% endif %}">Clients</a>
+                        <a href="{% url 'trip_list' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'trip_list' %}active{% endif %}">Trips</a>
+                        <a href="{% url 'cargo_list' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'cargo_list' %}active{% endif %}">Cargo</a>
+                        <a href="{% url 'client_list' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'client_list' %}active{% endif %}">Clients</a>
                     </div>
                 </div>
 
@@ -189,12 +189,12 @@
                         <span class="sidebar-tooltip" style="display:none">Finance</span>
                     </button>
                     <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
-                        <a href="{% url 'expense_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}">Expenses</a>
-                        <a href="{% url 'payment_list' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'payment_list' %}active{% endif %}">Payments</a>
+                        <a href="{% url 'expense_list' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'expense_list' %}active{% endif %}">Expenses</a>
+                        <a href="{% url 'payment_list' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'payment_list' %}active{% endif %}">Payments</a>
                     </div>
                 </div>
 
-                <a href="{% url 'maintenance_list' %}"
+                <a href="{% url 'maintenance_list' %}" data-sidebar-prefetch
                    class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm {% if request.resolver_match.url_name == 'maintenance_list' %}active bg-white/10{% endif %}"
                    @mouseenter="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'block')"
                    @mouseleave="$el.querySelector('.sidebar-tooltip') && ($el.querySelector('.sidebar-tooltip').style.display = 'none')">
@@ -215,10 +215,10 @@
                         <span class="sidebar-tooltip" style="display:none">Reports</span>
                     </button>
                     <div x-show="open" x-cloak class="ml-6 space-y-1 mt-1 collapsed-hide">
-                        <a href="{% url 'report_dashboard' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'report_dashboard' %}active{% endif %}">Report Center</a>
-                        <a href="{% url 'daily_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'daily_trip_report' %}active{% endif %}">Daily Trips</a>
-                        <a href="{% url 'monthly_trip_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'monthly_trip_report' %}active{% endif %}">Monthly Trips</a>
-                        <a href="{% url 'profit_loss_report' %}" class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'profit_loss_report' %}active{% endif %}">Profit & Loss</a>
+                        <a href="{% url 'report_dashboard' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'report_dashboard' %}active{% endif %}">Report Center</a>
+                        <a href="{% url 'daily_trip_report' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'daily_trip_report' %}active{% endif %}">Daily Trips</a>
+                        <a href="{% url 'monthly_trip_report' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'monthly_trip_report' %}active{% endif %}">Monthly Trips</a>
+                        <a href="{% url 'profit_loss_report' %}" data-sidebar-prefetch class="sidebar-link flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-sidebar-muted {% if request.resolver_match.url_name == 'profit_loss_report' %}active{% endif %}">Profit & Loss</a>
                     </div>
                 </div>
                 {% endif %}
@@ -490,6 +490,34 @@
                 Alpine.initTree(evt.detail.target);
             }
         });
+        const prefetchedSidebarUrls = new Set();
+        function prefetchSidebarLink(link) {
+            if (!link || !link.href || prefetchedSidebarUrls.has(link.href)) return;
+            if (link.origin !== window.location.origin || link.target || link.hasAttribute('download')) return;
+            prefetchedSidebarUrls.add(link.href);
+            fetch(link.href, {
+                credentials: 'same-origin',
+                headers: {
+                    'HX-Request': 'true',
+                    'HX-Boosted': 'true',
+                    'HX-Target': 'app-shell',
+                    'HX-Current-URL': window.location.href,
+                    'X-Prefetch': 'sidebar'
+                },
+                priority: 'low'
+            }).catch(function() {
+                prefetchedSidebarUrls.delete(link.href);
+            });
+        }
+        document.body.addEventListener('pointerenter', function(evt) {
+            prefetchSidebarLink(evt.target.closest && evt.target.closest('[data-sidebar-prefetch]'));
+        }, true);
+        document.body.addEventListener('focusin', function(evt) {
+            prefetchSidebarLink(evt.target.closest && evt.target.closest('[data-sidebar-prefetch]'));
+        });
+        document.body.addEventListener('touchstart', function(evt) {
+            prefetchSidebarLink(evt.target.closest && evt.target.closest('[data-sidebar-prefetch]'));
+        }, { passive: true });
         document.body.addEventListener('htmx:sendError', function() {
             document.getElementById('global-spinner').style.display = 'none';
         });

@@ -89,6 +89,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "core.middleware.RequestTimingMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -246,6 +247,11 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
+        "request_timing_console": {
+            "level": os.environ.get("REQUEST_TIMING_LOG_LEVEL", "INFO"),
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
     },
     "loggers": {
         "django": {
@@ -256,6 +262,11 @@ LOGGING = {
         "django.security": {
             "handlers": ["console"],
             "level": "WARNING",
+            "propagate": False,
+        },
+        "performance.requests": {
+            "handlers": ["request_timing_console"],
+            "level": os.environ.get("REQUEST_TIMING_LOG_LEVEL", "INFO"),
             "propagate": False,
         },
     },
