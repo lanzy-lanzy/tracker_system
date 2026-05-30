@@ -14,7 +14,7 @@
                 </svg>
             </div>
             <h3 class="text-lg font-semibold text-gray-800 mb-1">Create Backup</h3>
-            <p class="text-sm text-gray-500 mb-4">Save a snapshot of the current database to the server.</p>
+            <p class="text-sm text-gray-500 mb-4">Save a {{ database_label }} snapshot to the server.</p>
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="create">
@@ -29,11 +29,11 @@
                 </svg>
             </div>
             <h3 class="text-lg font-semibold text-gray-800 mb-1">Import Backup</h3>
-            <p class="text-sm text-gray-500 mb-4">Upload a .sqlite3 file to the server's backup folder.</p>
+            <p class="text-sm text-gray-500 mb-4">Upload a {{ allowed_ext }} file to the server's backup folder.</p>
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="import">
-                <input type="file" name="backup_file" accept=".sqlite3" required
+                <input type="file" name="backup_file" accept="{{ allowed_ext }}" required
                        class="form-input text-sm mb-3 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-[#810B38] file:text-white file:cursor-pointer">
                 <button type="submit" class="btn-primary w-full text-sm">Upload Backup</button>
             </form>
@@ -46,7 +46,7 @@
                 </svg>
             </div>
             <h3 class="text-lg font-semibold text-gray-800 mb-1">Restore</h3>
-            <p class="text-sm text-gray-500 mb-4">Replace the current database with a backup from the list below.</p>
+            <p class="text-sm text-gray-500 mb-4">Replace the current {{ database_label }} database with a backup from the list below.</p>
             <p class="text-xs text-amber-600 font-medium">⚠ Current data is auto-backed up before restore.</p>
         </div>
     </div>
@@ -54,7 +54,7 @@
     <div class="card overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-800">Backup Files</h3>
-            <p class="text-xs text-gray-400">Stored in: <code class="font-mono">backups/</code></p>
+            <p class="text-xs text-gray-400">{{ database_label }} {{ allowed_ext }} files stored in: <code class="font-mono">backups/</code></p>
         </div>
         {% if backups %}
         <div class="overflow-x-auto">
@@ -102,7 +102,7 @@
             </table>
         </div>
         {% else %}
-        <div class="p-6 text-center text-gray-400">No backups yet. Create your first backup above.</div>
+        <div class="p-6 text-center text-gray-400">No {{ database_label }} backups yet. Create your first {{ allowed_ext }} backup above.</div>
         {% endif %}
     </div>
 </div>
