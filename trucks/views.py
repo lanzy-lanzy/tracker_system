@@ -9,13 +9,15 @@ from core.decorators import role_required
 from core.utils import is_admin_or_dispatcher
 from maintenance.models import Maintenance
 from trips.models import Trip
+from core.pagination import paginate_queryset
 
 
 @login_required
 @role_required("admin", "dispatcher")
 def truck_list_view(request):
-    trucks = Truck.objects.all()
-    return render(request, "trucks/truck_list.html", {"trucks": trucks})
+    trucks = Truck.objects.order_by("plate_number")
+    page_obj = paginate_queryset(request, trucks)
+    return render(request, "trucks/truck_list.html", {"trucks": page_obj, "page_obj": page_obj})
 
 
 @ratelimit(key="ip", rate="15/m", method="POST", block=True)

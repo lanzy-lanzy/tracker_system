@@ -438,13 +438,24 @@
                 evt.detail.headers['X-CSRFToken'] = csrfMeta.getAttribute('content');
             }
         });
+        function shouldShowGlobalSpinner(evt) {
+            var elt = evt.detail.elt;
+            var trigger = elt && elt.getAttribute && elt.getAttribute('hx-trigger');
+            var target = evt.detail.target;
+            if (trigger && trigger.indexOf('load') !== -1 && target && target.id !== 'modal-content') {
+                return false;
+            }
+            return !(target && target.closest && target.closest('[data-no-global-spinner]'));
+        }
         document.body.addEventListener('htmx:beforeRequest', function(evt) {
             var target = evt.detail.target;
             if (target) {
                 var indicator = target.querySelector('.htmx-indicator');
                 if (indicator) indicator.style.display = 'inline-block';
             }
-            document.getElementById('global-spinner').style.display = 'flex';
+            if (shouldShowGlobalSpinner(evt)) {
+                document.getElementById('global-spinner').style.display = 'flex';
+            }
         });
         document.body.addEventListener('htmx:afterOnLoad', function(evt) {
             if (evt.detail.target.id === 'modal-content') {

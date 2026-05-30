@@ -80,10 +80,42 @@
         renderRows(table, filtered);
     }
 
+    function applyServerRowFilters() {
+        var searchInput = document.querySelector("[data-api-truck-search]");
+        var typeInput = document.querySelector("[data-api-truck-type]");
+        var statusInput = document.querySelector("[data-api-truck-status]");
+        var query = ((searchInput && searchInput.value) || "").trim().toLowerCase();
+        var type = (typeInput && typeInput.value) || "";
+        var status = (statusInput && statusInput.value) || "";
+        document.querySelectorAll("[data-api-truck-row]").forEach(function (row) {
+            var searchable = (row.getAttribute("data-search") || "").toLowerCase();
+            var rowType = row.getAttribute("data-type") || "";
+            var rowStatus = row.getAttribute("data-status") || "";
+            var matches = (!query || searchable.indexOf(query) >= 0) &&
+                (!type || rowType === type) &&
+                (!status || rowStatus === status);
+            row.style.display = matches ? "" : "none";
+        });
+    }
+
+    function bindServerRowFilters() {
+        ["[data-api-truck-search]", "[data-api-truck-type]", "[data-api-truck-status]"].forEach(function (selector) {
+            var input = document.querySelector(selector);
+            if (input) {
+                input.addEventListener("input", applyServerRowFilters);
+                input.addEventListener("change", applyServerRowFilters);
+            }
+        });
+    }
+
     async function hydrateTruckList() {
         var root = document.querySelector('[data-api-list="trucks"]');
         var table = document.querySelector("[data-api-truck-table]");
         if (!root || !table || !window.TrackerApi) {
+            return;
+        }
+        if (root.getAttribute("data-api-mode") === "server") {
+            bindServerRowFilters();
             return;
         }
         try {

@@ -11,6 +11,7 @@ from django_ratelimit.decorators import ratelimit
 
 from .models import Payment
 from core.decorators import role_required
+from core.pagination import paginate_queryset
 from trips.models import Trip
 from clients.models import Client
 
@@ -30,11 +31,13 @@ def _clean_amount(value):
 @login_required
 @role_required("admin", "dispatcher")
 def payment_list_view(request):
-    payments = Payment.objects.all().select_related("trip", "client")
+    payments = Payment.objects.select_related("trip", "client").order_by("-payment_date", "-id")
     total_collected = payments.filter(payment_status="paid").aggregate(Sum("amount_paid"))["amount_paid__sum"] or 0
     total_outstanding = payments.annotate(balance=F("amount_due") - F("amount_paid")).aggregate(Sum("balance"))["balance__sum"] or 0
+    page_obj = paginate_queryset(request, payments)
     return render(request, "payments/payment_list.html", {
-        "payments": payments,
+        "payments": page_obj,
+        "page_obj": page_obj,
         "total_collected": total_collected,
         "total_outstanding": total_outstanding,
     })

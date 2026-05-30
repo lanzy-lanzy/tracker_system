@@ -27,7 +27,7 @@ def invalidate_dashboard():
 
 
 def invalidate_dropdowns():
-    _clear("dropdown:trucks", "dropdown:drivers", "dropdown:clients")
+    _clear("dropdown:choices", "dropdown:trucks", "dropdown:drivers", "dropdown:clients")
 
 
 def invalidate_reports():

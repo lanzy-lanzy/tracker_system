@@ -8,6 +8,7 @@ from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
 from .models import Maintenance
 from core.decorators import role_required
+from core.pagination import paginate_queryset
 from trucks.models import Truck
 
 logger = logging.getLogger(__name__)
@@ -16,8 +17,9 @@ logger = logging.getLogger(__name__)
 @login_required
 @role_required("admin", "dispatcher")
 def maintenance_list_view(request):
-    records = Maintenance.objects.all().select_related("truck")
-    return render(request, "maintenance/maintenance_list.html", {"records": records})
+    records = Maintenance.objects.select_related("truck").order_by("-service_date", "-id")
+    page_obj = paginate_queryset(request, records)
+    return render(request, "maintenance/maintenance_list.html", {"records": page_obj, "page_obj": page_obj})
 
 
 @ratelimit(key="ip", rate="15/m", method="POST", block=True)

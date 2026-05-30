@@ -6,6 +6,7 @@ import uuid
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.http import HttpResponse
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -184,6 +185,15 @@ class ApiContractTests(TestCase):
         self.assertEqual(payload["trips"]["status"][0], {"value": "pending", "label": "Pending"})
         self.assertIn({"value": "available", "label": "Available"}, payload["trucks"]["status"])
 
+    def test_dropdown_invalidation_clears_choice_metadata_cache(self):
+        from core.cache_invalidation import invalidate_dropdowns
+
+        cache.set("dropdown:choices", {"stale": True}, 3600)
+
+        invalidate_dropdowns()
+
+        self.assertIsNone(cache.get("dropdown:choices"))
+
     def test_monthly_trip_report_is_available_as_json(self):
         client = Client.objects.create(client_name="Acme", contact_number="555-0100")
         Trip.objects.create(
@@ -248,3 +258,25 @@ class ApiContractTests(TestCase):
         self.assertContains(response, 'data-api-list="trucks"')
         self.assertContains(response, 'data-api-url="/api/trucks/"')
         self.assertContains(response, 'src="/static/js/truck-list-api.js"')
+
+    def test_truck_list_renders_first_page_only(self):
+        for i in range(55):
+            Truck.objects.create(
+                plate_number=f"TRK-{i:03d}",
+                truck_type="flatbed",
+                status="available",
+            )
+
+        response = self.client.get("/trucks/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "TRK-000")
+        self.assertContains(response, "Page 1 of 2")
+        self.assertNotContains(response, "TRK-054")
+
+    def test_background_htmx_loads_do_not_use_global_spinner(self):
+        response = self.client.get("/dashboard/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "shouldShowGlobalSpinner")
+        self.assertContains(response, 'hx-trigger="load"')

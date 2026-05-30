@@ -8,6 +8,7 @@ from django_ratelimit.decorators import ratelimit
 from django.template.loader import render_to_string
 from .models import Trip, StatusHistory
 from core.decorators import role_required
+from core.pagination import paginate_queryset
 from core.utils import filter_trips_for_user, is_driver, is_admin_or_dispatcher
 from clients.models import Client
 from trucks.models import Truck
@@ -18,8 +19,9 @@ from cargo.models import Cargo
 @login_required
 def trip_list_view(request):
     trips = filter_trips_for_user(request.user, Trip.objects.all())
-    trips = trips.select_related("client", "assigned_truck", "assigned_driver")
-    return render(request, "trips/trip_list.html", {"trips": trips})
+    trips = trips.select_related("client", "assigned_truck", "assigned_driver").order_by("-created_at")
+    page_obj = paginate_queryset(request, trips)
+    return render(request, "trips/trip_list.html", {"trips": page_obj, "page_obj": page_obj})
 
 
 @ratelimit(key="ip", rate="15/m", method="POST", block=True)

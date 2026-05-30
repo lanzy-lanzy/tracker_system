@@ -1,0 +1,13 @@
+{% if page_obj and page_obj.has_other_pages %}
+<nav class="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-sm" aria-label="Pagination">
+    <p class="text-gray-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+    <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+        <a class="btn-secondary px-3 py-1.5" href="{% querystring page=page_obj.previous_page_number %}">Previous</a>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <a class="btn-secondary px-3 py-1.5" href="{% querystring page=page_obj.next_page_number %}">Next</a>
+        {% endif %}
+    </div>
+</nav>
+{% endif %}

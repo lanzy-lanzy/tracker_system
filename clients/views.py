@@ -6,6 +6,7 @@ from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
 from .models import Client
 from core.decorators import role_required
+from core.pagination import paginate_queryset
 from trips.models import Trip
 from payments.models import Payment
 
@@ -13,8 +14,9 @@ from payments.models import Payment
 @login_required
 @role_required("admin", "dispatcher")
 def client_list_view(request):
-    clients = Client.objects.all()
-    return render(request, "clients/client_list.html", {"clients": clients})
+    clients = Client.objects.order_by("client_name")
+    page_obj = paginate_queryset(request, clients)
+    return render(request, "clients/client_list.html", {"clients": page_obj, "page_obj": page_obj})
 
 
 @ratelimit(key="ip", rate="15/m", method="POST", block=True)

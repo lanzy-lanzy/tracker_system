@@ -37,7 +37,7 @@
     </button>
 </div>
 
-<div class="card overflow-hidden" data-api-list="trucks" data-api-url="{% url 'api-trucks-list' %}">
+<div class="card overflow-hidden" data-api-list="trucks" data-api-mode="server" data-api-url="{% url 'api-trucks-list' %}">
     <table class="w-full">
         <thead class="table-header">
             <tr>
@@ -55,7 +55,11 @@
                data-edit-template="{% url 'truck_modal_edit' pk=0 %}"
                data-delete-template="{% url 'truck_modal_delete' pk=0 %}">
             {% for truck in trucks %}
-            <tr class="hover:bg-gray-50 transition">
+            <tr class="hover:bg-gray-50 transition"
+                data-api-truck-row
+                data-search="{{ truck.plate_number }} {{ truck.unit_number }} {{ truck.get_truck_type_display }} {{ truck.get_status_display }} {{ truck.registration_number }}"
+                data-type="{{ truck.truck_type }}"
+                data-status="{{ truck.status }}">
                 <td class="table-cell font-medium text-[#541A1A]">{{ truck.plate_number }}</td>
                 <td class="table-cell">{{ truck.unit_number|default:"—" }}</td>
                 <td class="table-cell">{{ truck.get_truck_type_display }}</td>
@@ -109,6 +113,7 @@
             {% endfor %}
         </tbody>
     </table>
+    {% include "components/pagination.html" %}
 </div>
 {% endblock %}
 

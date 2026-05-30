@@ -8,6 +8,7 @@ from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
 from .models import Driver
 from core.decorators import role_required
+from core.pagination import paginate_queryset
 from trips.models import Trip, StatusHistory
 from trucks.models import Truck
 
@@ -15,8 +16,9 @@ from trucks.models import Truck
 @login_required
 @role_required("admin", "dispatcher")
 def driver_list_view(request):
-    drivers = Driver.objects.all()
-    return render(request, "drivers/driver_list.html", {"drivers": drivers})
+    drivers = Driver.objects.select_related("user", "assigned_truck").order_by("full_name")
+    page_obj = paginate_queryset(request, drivers)
+    return render(request, "drivers/driver_list.html", {"drivers": page_obj, "page_obj": page_obj})
 
 
 @ratelimit(key="ip", rate="15/m", method="POST", block=True)

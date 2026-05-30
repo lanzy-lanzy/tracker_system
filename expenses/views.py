@@ -16,6 +16,7 @@ from reportlab.platypus import Paragraph, Spacer, Table, TableStyle, HRFlowable,
 from reports.pdf_utils import PRIMARY, DARK, BORDER, LIGHT_GRAY
 from .models import Expense
 from core.decorators import role_required
+from core.pagination import paginate_queryset
 from trips.models import Trip
 from trucks.models import Truck
 
@@ -38,9 +39,10 @@ def expense_list_view(request):
     if end:
         qs = qs.filter(date__lte=end)
 
-    expenses = qs
-
-    total = expenses.aggregate(Sum("amount"))["amount__sum"] or 0
+    qs = qs.order_by("-date", "-id")
+    total = qs.aggregate(Sum("amount"))["amount__sum"] or 0
+    page_obj = paginate_queryset(request, qs)
+    expenses = page_obj
 
     grouped = {}
     for exp in expenses:
@@ -66,6 +68,7 @@ def expense_list_view(request):
 
     return render(request, "expenses/expense_list.html", {
         "expenses": expenses,
+        "page_obj": page_obj,
         "type_sections": type_sections,
         "total": total,
     })

@@ -8,6 +8,7 @@ from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
 from .models import Cargo
 from core.decorators import role_required
+from core.pagination import paginate_queryset
 from core.utils import filter_cargo_for_user
 from trips.models import Trip
 
@@ -17,8 +18,9 @@ logger = logging.getLogger(__name__)
 @login_required
 def cargo_list_view(request):
     cargo_items = filter_cargo_for_user(request.user, Cargo.objects.all())
-    cargo_items = cargo_items.select_related("trip")
-    return render(request, "cargo/cargo_list.html", {"cargo_items": cargo_items})
+    cargo_items = cargo_items.select_related("trip").order_by("-id")
+    page_obj = paginate_queryset(request, cargo_items)
+    return render(request, "cargo/cargo_list.html", {"cargo_items": page_obj, "page_obj": page_obj})
 
 
 @ratelimit(key="ip", rate="15/m", method="POST", block=True)
