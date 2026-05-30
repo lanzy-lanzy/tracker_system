@@ -1,4 +1,5 @@
 import os
+import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -27,6 +28,12 @@ POSTGRES_DATABASES = {
 
 
 class BackupUtilityTests(SimpleTestCase):
+    def test_railpack_installs_postgres_client_18_for_railway_postgres(self):
+        config = json.loads((Path(__file__).resolve().parent.parent / "railpack.json").read_text())
+
+        self.assertIn("postgresql-client-18", config["deploy"]["aptPackages"])
+        self.assertNotIn("postgresql-client", config["deploy"]["aptPackages"])
+
     @override_settings(DATABASES=SQLITE_DATABASES)
     def test_sqlite_uses_sqlite_extension(self):
         self.assertEqual(backup_utils.database_kind(), "sqlite")
