@@ -203,6 +203,12 @@ def php(value):
     """Format a number as Philippine Peso currency (P 1,234.56)."""
     if isinstance(value, (int, float)):
         return f"P {value:,.2f}"
+    try:
+        from decimal import Decimal
+        if isinstance(value, Decimal):
+            return f"P {float(value):,.2f}"
+    except Exception:
+        pass
     return str(value)
 
 
