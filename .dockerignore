@@ -1,0 +1,13 @@
+.git
+.venv
+__pycache__/
+*.py[cod]
+db.sqlite3
+db.sqlite3-*
+backups/
+media/
+public/static/
+staticfiles/
+.env
+.env.*
+!.env.example
