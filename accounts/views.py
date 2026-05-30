@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -10,6 +10,9 @@ from django_ratelimit.decorators import ratelimit
 from drivers.models import Driver
 from trucks.models import Truck
 from .models import Profile
+
+
+ALLOWED_PROFILE_IMAGE_TYPES = {"image/jpeg", "image/png"}
 
 
 DRIVER_REQUIRED_FIELDS = {
@@ -63,6 +66,18 @@ def _sync_driver_profile(user, request):
     return driver
 
 
+def _save_profile_picture(profile, uploaded):
+    if not uploaded:
+        return
+    content_type = uploaded.content_type or ""
+    if content_type not in ALLOWED_PROFILE_IMAGE_TYPES:
+        raise ValueError("Only JPG and PNG profile pictures are allowed.")
+    profile.profile_picture_data = uploaded.read()
+    profile.profile_picture_mime_type = content_type
+    profile.profile_picture_filename = uploaded.name
+    profile.profile_picture = None
+
+
 @ratelimit(key="ip", rate="10/m", method="POST", block=True)
 def login_view(request):
     if request.user.is_authenticated:
@@ -103,6 +118,11 @@ def profile_edit_view(request):
         profile = user.profile
         profile.phone = request.POST.get("phone", "")
         profile.address = request.POST.get("address", "")
+        try:
+            _save_profile_picture(profile, request.FILES.get("profile_picture"))
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return render(request, "accounts/profile_edit.html")
         profile.save()
         messages.success(request, "Profile updated successfully.")
         return redirect("profile")
@@ -121,14 +141,34 @@ def profile_edit_modal_view(request):
         profile = user.profile
         profile.phone = request.POST.get("phone", "")
         profile.address = request.POST.get("address", "")
-        if request.FILES.get("profile_picture"):
-            profile.profile_picture = request.FILES["profile_picture"]
+        try:
+            _save_profile_picture(profile, request.FILES.get("profile_picture"))
+        except ValueError as exc:
+            return render(request, "accounts/_profile_edit_modal.html", {
+                "user": request.user,
+                "error": str(exc),
+            })
         profile.save()
         response = HttpResponse()
         response["HX-Trigger"] = "profileUpdated"
         response["HX-Redirect"] = reverse("profile")
         return response
     return render(request, "accounts/_profile_edit_modal.html", {"user": request.user})
+
+
+@login_required
+def profile_picture_view(request, pk):
+    profile = get_object_or_404(Profile, user_id=pk)
+    if profile.profile_picture_data:
+        response = HttpResponse(
+            bytes(profile.profile_picture_data),
+            content_type=profile.profile_picture_mime_type or "application/octet-stream",
+        )
+        response["Cache-Control"] = "private, max-age=3600"
+        return response
+    if profile.profile_picture:
+        return FileResponse(profile.profile_picture.open("rb"), content_type="application/octet-stream")
+    raise Http404("Profile picture not found.")
 
 
 @login_required

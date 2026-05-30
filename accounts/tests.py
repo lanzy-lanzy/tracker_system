@@ -1,8 +1,10 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import TestCase
+from django.urls import reverse
 
 from drivers.models import Driver
 
@@ -131,4 +133,56 @@ class UserManagementDriverSyncTests(TestCase):
         self.assertEqual(user.driver_profile.contact_number, "09991234567")
         self.assertEqual(user.driver_profile.license_number, "NEW-002")
 
-# Create your tests here.
+
+class ProfilePicturePersistenceTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="owner", password="password")
+        self.client.force_login(self.user)
+
+    def test_modal_upload_saves_profile_picture_bytes_to_database(self):
+        image = SimpleUploadedFile(
+            "avatar.png",
+            b"\x89PNG\r\n\x1a\nprofile-image-bytes",
+            content_type="image/png",
+        )
+
+        response = self.client.post(
+            reverse("profile_edit_modal"),
+            {
+                "first_name": "Profile",
+                "last_name": "Owner",
+                "email": "owner@example.com",
+                "phone": "09171234567",
+                "address": "Depot",
+                "profile_picture": image,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(bytes(self.user.profile.profile_picture_data), b"\x89PNG\r\n\x1a\nprofile-image-bytes")
+        self.assertEqual(self.user.profile.profile_picture_mime_type, "image/png")
+        self.assertEqual(self.user.profile.profile_picture_filename, "avatar.png")
+        self.assertEqual(self.user.profile.profile_picture.name, "")
+
+    def test_profile_picture_view_streams_database_image(self):
+        self.user.profile.profile_picture_data = b"database-image"
+        self.user.profile.profile_picture_mime_type = "image/png"
+        self.user.profile.profile_picture_filename = "avatar.png"
+        self.user.profile.save()
+
+        response = self.client.get(reverse("profile_picture", args=[self.user.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertEqual(response.content, b"database-image")
+
+    def test_profile_page_uses_database_profile_picture_url(self):
+        self.user.profile.profile_picture_data = b"database-image"
+        self.user.profile.profile_picture_mime_type = "image/png"
+        self.user.profile.profile_picture_filename = "avatar.png"
+        self.user.profile.save()
+
+        response = self.client.get(reverse("profile"))
+
+        self.assertContains(response, reverse("profile_picture", args=[self.user.pk]))

@@ -10,8 +10,8 @@
   <div class="card p-6">
     <div class="flex flex-col sm:flex-row items-center gap-5 mb-6">
       <div class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white shadow-xl flex-shrink-0 bg-surface">
-        {% if user.profile.profile_picture %}
-        <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
+        {% if user.profile.has_profile_picture %}
+        <img src="{{ user.profile.profile_picture_display_url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
         {% else %}
         <div class="w-full h-full accent-bg flex items-center justify-center text-white text-3xl font-bold tracking-wide">
           {{ user.first_name|first|default:user.username|first|upper }}

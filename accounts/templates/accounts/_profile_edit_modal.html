@@ -1,6 +1,6 @@
 <div class="relative">
   <div class="h-1.5 bg-gradient-to-r from-[#810B38] to-[#541A1A] rounded-t-2xl"></div>
-  <div class="p-6" x-data="{ submitting: false, previewUrl: '{% if user.profile.profile_picture %}{{ user.profile.profile_picture.url }}{% endif %}' }">
+  <div class="p-6" x-data="{ submitting: false, previewUrl: '{% if user.profile.has_profile_picture %}{{ user.profile.profile_picture_display_url }}{% endif %}' }">
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-[#810B38]/10 flex items-center justify-center flex-shrink-0">

@@ -7,8 +7,23 @@
 {% block content %}
 <div class="max-w-3xl mx-auto">
     <div class="card p-6">
-        <form method="post" class="space-y-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
+
+            <div class="flex flex-col items-center">
+                <div class="w-24 h-24 rounded-full overflow-hidden bg-surface border-4 border-white shadow-lg">
+                    {% if user.profile.has_profile_picture %}
+                    <img src="{{ user.profile.profile_picture_display_url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full accent-bg flex items-center justify-center text-white text-3xl font-bold">
+                        {{ user.first_name|first|default:user.username|first|upper }}
+                    </div>
+                    {% endif %}
+                </div>
+                <label class="form-label mt-4" for="profile_picture">Display Picture</label>
+                <input type="file" id="profile_picture" name="profile_picture" accept="image/jpeg,image/png"
+                       class="form-input text-sm max-w-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-[#810B38] file:text-white file:cursor-pointer">
+            </div>
 
             <div>
                 <h4 class="text-lg font-semibold text-[#541A1A] mb-4">Personal Information</h4>

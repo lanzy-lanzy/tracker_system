@@ -7,6 +7,7 @@ urlpatterns = [
     path("profile/", views.profile_view, name="profile"),
     path("profile/edit/", views.profile_edit_view, name="profile_edit"),
     path("profile/edit/modal/", views.profile_edit_modal_view, name="profile_edit_modal"),
+    path("profile-picture/<int:pk>/", views.profile_picture_view, name="profile_picture"),
     path("users/", views.user_list_view, name="user_list"),
     path("users/create/", views.user_create_view, name="user_create"),
     path("users/<int:pk>/edit/", views.user_edit_view, name="user_edit"),

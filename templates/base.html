@@ -332,8 +332,8 @@
                         <div x-data="{ open: false }" class="relative">
                             <button @click="open = !open" @click.outside="open = false" class="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-surface">
                                 <div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                                    {% if user.profile.profile_picture %}
-                                    <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
+                                    {% if user.profile.has_profile_picture %}
+                                    <img src="{{ user.profile.profile_picture_display_url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
                                     {% else %}
                                     <div class="w-full h-full accent-bg flex items-center justify-center text-sm font-bold">
                                         {{ user.first_name|first|default:user.username|first|upper }}
