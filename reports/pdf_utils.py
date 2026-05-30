@@ -13,7 +13,9 @@ from reportlab.platypus import (
 from reportlab.platypus.frames import Frame
 from reportlab.platypus.doctemplate import PageTemplate
 
+# ── Brand colors ───────────────────────────────────────────────
 PRIMARY = HexColor("#810B38")
+PRIMARY_LIGHT = HexColor("#A31545")
 DARK = HexColor("#541A1A")
 CREAM = HexColor("#F1E2D1")
 BORDER = HexColor("#DCC3AA")
@@ -81,6 +83,9 @@ DARK_GRAY = HexColor("#1F2937")
 MID_GRAY = HexColor("#4B5563")
 BORDER_GRAY = HexColor("#D1D5DB")
 LIGHT_BG = HexColor("#F3F4F6")
+CREAM_BG = HexColor("#FDF2F4")
+ROW_ALT = HexColor("#FAF5F0")
+ACCENT_LINE = HexColor("#E8D0D8")
 WHITE = HexColor("#FFFFFF")
 PAGE_W_P, PAGE_H_P = A4
 PORTRAIT_MARGIN = 52
@@ -118,14 +123,35 @@ def _register_portrait_font():
 
 def _portrait_header_footer(canvas, doc, report_name="Report"):
     canvas.saveState()
+    pw, ph = A4
+
+    # Top accent bar — burgundy
+    canvas.setFillColor(PRIMARY)
+    canvas.rect(0, ph - 8, pw, 8, fill=1, stroke=0)
+
+    # Thin secondary line below accent bar
+    canvas.setStrokeColor(ACCENT_LINE)
+    canvas.setLineWidth(0.5)
+    canvas.line(PORTRAIT_MARGIN, ph - 14, pw - PORTRAIT_MARGIN, ph - 14)
+
+    # Footer separator
     canvas.setStrokeColor(BORDER_GRAY)
     canvas.setLineWidth(0.5)
-    canvas.line(PORTRAIT_MARGIN, 36, PAGE_W_P - PORTRAIT_MARGIN, 36)
-    fnt, _ = _register_portrait_font()
+    canvas.line(PORTRAIT_MARGIN, 40, pw - PORTRAIT_MARGIN, 40)
+
+    fnt, fnt_bold = _register_portrait_font()
+
+    # Footer: brand name (left), report name (center), page (right)
     canvas.setFont(fnt, 7)
     canvas.setFillColor(MID_GRAY)
-    canvas.drawString(PORTRAIT_MARGIN, 24, f"Trucking Tracker — {report_name}")
-    canvas.drawRightString(PAGE_W_P - PORTRAIT_MARGIN, 24, f"Page {doc.page}")
+    canvas.drawString(PORTRAIT_MARGIN, 28, "Trucking Tracker")
+    canvas.setFont(fnt, 6.5)
+    canvas.setFillColor(GRAY)
+    canvas.drawCentredString(pw / 2, 28, report_name)
+    canvas.setFont(fnt, 7)
+    canvas.setFillColor(MID_GRAY)
+    canvas.drawRightString(pw - PORTRAIT_MARGIN, 28, f"Page {doc.page}")
+
     canvas.restoreState()
 
 
@@ -133,12 +159,12 @@ def make_portrait_pdf_response(filename, elements, report_name="Report"):
     buf = BytesIO()
     doc = SimpleDocTemplate(
         buf, pagesize=A4,
-        topMargin=PORTRAIT_MARGIN, bottomMargin=PORTRAIT_MARGIN,
+        topMargin=PORTRAIT_MARGIN + 10, bottomMargin=PORTRAIT_MARGIN,
         leftMargin=PORTRAIT_MARGIN, rightMargin=PORTRAIT_MARGIN,
     )
     frame = Frame(
         PORTRAIT_MARGIN, PORTRAIT_MARGIN,
-        PAGE_W_P - PORTRAIT_MARGIN * 2, PAGE_H_P - PORTRAIT_MARGIN * 2,
+        PAGE_W_P - PORTRAIT_MARGIN * 2, PAGE_H_P - PORTRAIT_MARGIN * 2 - 10,
         id="normal",
     )
     cb = lambda c, d: _portrait_header_footer(c, d, report_name)
@@ -166,22 +192,61 @@ def portrait_style_sheet():
         "tcr": ParagraphStyle("TCR", parent=styles["Normal"], fontSize=7.5, textColor=DARK_GRAY, fontName=f, alignment=TA_RIGHT, leading=10),
         "stat_label": ParagraphStyle("SL", parent=styles["Normal"], fontSize=8, textColor=MID_GRAY, fontName=f, leading=10),
         "stat_value": ParagraphStyle("SV", parent=styles["Normal"], fontSize=14, textColor=DARK_GRAY, fontName=fb, alignment=TA_RIGHT, leading=17),
+        "stat_value_accent": ParagraphStyle("SVA", parent=styles["Normal"], fontSize=14, textColor=PRIMARY, fontName=fb, alignment=TA_RIGHT, leading=17),
+        "stat_label_accent": ParagraphStyle("SLA", parent=styles["Normal"], fontSize=8, textColor=PRIMARY, fontName=fb, leading=10),
+        "kpi_value": ParagraphStyle("KPIV", parent=styles["Normal"], fontSize=16, textColor=DARK_GRAY, fontName=fb, alignment=TA_CENTER, leading=20),
+        "kpi_label": ParagraphStyle("KPIL", parent=styles["Normal"], fontSize=7.5, textColor=MID_GRAY, fontName=f, alignment=TA_CENTER, leading=10),
     }
 
 
 def portrait_summary_table(s, value, label="Total"):
-    data = [[Paragraph(label, s["stat_label"]), Paragraph(f"₱{value:,.2f}" if isinstance(value, (int, float)) else str(value), s["stat_value"])]]
+    data = [[Paragraph(label, s["stat_label_accent"]), Paragraph(f"₱{value:,.2f}" if isinstance(value, (int, float)) else str(value), s["stat_value_accent"])]]
     tw = PAGE_W_P - PORTRAIT_MARGIN * 2
     tbl = Table(data, colWidths=[tw * 0.3, tw * 0.7])
     tbl.setStyle(TableStyle([
-        ("BOX", (0, 0), (-1, -1), 0.5, BORDER_GRAY),
-        ("BACKGROUND", (0, 0), (-1, -1), LIGHT_BG),
+        ("BOX", (0, 0), (-1, -1), 0.5, ACCENT_LINE),
+        ("LINEAFTER", (0, 0), (0, -1), 2, PRIMARY),
+        ("BACKGROUND", (0, 0), (-1, -1), CREAM_BG),
         ("TOPPADDING", (0, 0), (-1, -1), 10),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
         ("LEFTPADDING", (0, 0), (-1, -1), 14),
         ("RIGHTPADDING", (0, 0), (-1, -1), 14),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
+    return tbl
+
+
+def portrait_multi_statRow(s, stats, bg_color=None):
+    """Create a row of stat boxes. stats = [(label, value), ...]"""
+    tw = PAGE_W_P - PORTRAIT_MARGIN * 2
+    n = len(stats)
+    col_w = tw / n
+
+    label_row = []
+    value_row = []
+    for label, value in stats:
+        label_row.append(Paragraph(label, s["kpi_label"]))
+        value_row.append(Paragraph(str(value), s["kpi_value"]))
+
+    data = [label_row, value_row]
+    bg = bg_color or LIGHT_BG
+    tbl = Table(data, colWidths=[col_w] * n)
+    cmds = [
+        ("BOX", (0, 0), (-1, -1), 0.5, ACCENT_LINE),
+        ("BACKGROUND", (0, 0), (-1, -1), bg),
+        ("TOPPADDING", (0, 0), (-1, 0), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 2),
+        ("TOPPADDING", (0, 1), (-1, 1), 0),
+        ("BOTTOMPADDING", (0, 1), (-1, 1), 8),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+    ]
+    # Vertical dividers between columns
+    for i in range(1, n):
+        cmds.append(("LINEAFTER", (i - 1, 0), (i - 1, -1), 0.3, ACCENT_LINE))
+    tbl.setStyle(TableStyle(cmds))
     return tbl
 
 
@@ -192,12 +257,12 @@ def portrait_build_table(s, headers, rows, col_widths=None):
     cw = col_widths or [tw / len(headers)] * len(headers)
     t = Table(data, colWidths=cw, repeatRows=1, hAlign="LEFT")
     cmds = [
-        ("BACKGROUND", (0, 0), (-1, 0), DARK_GRAY),
+        ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
         ("TEXTCOLOR", (0, 0), (-1, 0), WHITE),
-        ("GRID", (0, 0), (-1, -1), 0.3, BORDER_GRAY),
+        ("GRID", (0, 0), (-1, -1), 0.3, ACCENT_LINE),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, 0), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+        ("TOPPADDING", (0, 0), (-1, 0), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 7),
         ("LEFTPADDING", (0, 0), (-1, -1), 6),
         ("RIGHTPADDING", (0, 0), (-1, -1), 6),
         ("TOPPADDING", (0, 1), (-1, -1), 5),
@@ -205,7 +270,7 @@ def portrait_build_table(s, headers, rows, col_widths=None):
     ]
     for i in range(1, len(data)):
         if i % 2 == 0:
-            cmds.append(("BACKGROUND", (0, i), (-1, i), HexColor("#F9FAFB")))
+            cmds.append(("BACKGROUND", (0, i), (-1, i), ROW_ALT))
     t.setStyle(TableStyle(cmds))
     return t
 
@@ -218,7 +283,7 @@ def portrait_title_block(s, elements, title, period=None):
         parts.append(f"Period: {period}")
     parts.append(f"Generated {datetime.now().strftime('%B %d, %Y')}")
     elements.append(Paragraph(" • ".join(parts), s["meta"]))
-    elements.append(HRFlowable(width="100%", thickness=1.5, color=DARK_GRAY, spaceAfter=10, spaceBefore=0))
+    elements.append(HRFlowable(width="100%", thickness=2, color=PRIMARY, spaceAfter=10, spaceBefore=0))
 
 
 def _header_footer(canvas, doc):
