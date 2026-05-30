@@ -26,5 +26,9 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", hydrateDashboard);
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hydrateDashboard, { once: true });
+    } else {
+        hydrateDashboard();
+    }
 })();

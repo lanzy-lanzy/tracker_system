@@ -94,7 +94,7 @@
     </div>
 
     {% if user.is_authenticated %}
-        <div x-data="{ sidebarOpen: window.innerWidth >= 768 }" class="flex h-screen overflow-hidden">
+        <div id="app-shell" x-data="{ sidebarOpen: window.innerWidth >= 768 }" class="flex h-screen overflow-hidden">
         <div @keydown.escape.window="sidebarOpen = false"
              class="sidebar-mobile md:relative sidebar-bg text-sidebar flex-shrink-0 flex flex-col overflow-y-auto"
              :class="{ 'open': sidebarOpen, 'sidebar-collapsed': !sidebarOpen }">
@@ -114,6 +114,11 @@
             </div>
 
             <nav class="p-3 space-y-1 flex-1 collapsed-nav"
+                 hx-boost="true"
+                 hx-target="#app-shell"
+                 hx-select="#app-shell"
+                 hx-swap="outerHTML show:top"
+                 hx-push-url="true"
                  @click="if(window.innerWidth < 768 && $event.target.closest('a[href]')) sidebarOpen = false">
                 {% if user.profile.role != 'driver' %}
                 <a href="{% url 'dashboard' %}"
@@ -367,6 +372,7 @@
                 </div>
                 {% block content %}{% endblock %}
             </main>
+            {% block extra_scripts %}{% endblock %}
         </div>
 
         <div x-show="sidebarOpen" x-cloak
@@ -475,6 +481,11 @@
                 if (modal) modal.close();
             }
         });
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target && evt.detail.target.id === 'app-shell' && window.Alpine && Alpine.initTree) {
+                Alpine.initTree(evt.detail.target);
+            }
+        });
         document.body.addEventListener('htmx:sendError', function() {
             document.getElementById('global-spinner').style.display = 'none';
         });
@@ -498,6 +509,5 @@
             console.error('HTMX Error:', evt.detail);
         });
     </script>
-    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -133,5 +133,9 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", hydrateTruckList);
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hydrateTruckList, { once: true });
+    } else {
+        hydrateTruckList();
+    }
 })();

@@ -280,3 +280,21 @@ class ApiContractTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "shouldShowGlobalSpinner")
         self.assertContains(response, 'hx-trigger="load"')
+
+    def test_sidebar_navigation_uses_htmx_boosted_app_shell_swaps(self):
+        response = self.client.get("/dashboard/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="app-shell"')
+        self.assertContains(response, 'hx-boost="true"')
+        self.assertContains(response, 'hx-target="#app-shell"')
+        self.assertContains(response, 'hx-select="#app-shell"')
+
+    def test_page_scripts_can_run_after_boosted_swaps(self):
+        with open("static/js/dashboard-api.js", encoding="utf-8") as f:
+            dashboard_js = f.read()
+        with open("static/js/truck-list-api.js", encoding="utf-8") as f:
+            truck_js = f.read()
+
+        self.assertIn("document.readyState", dashboard_js)
+        self.assertIn("document.readyState", truck_js)
