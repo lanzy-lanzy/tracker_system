@@ -448,6 +448,10 @@
             var elt = evt.detail.elt;
             var trigger = elt && elt.getAttribute && elt.getAttribute('hx-trigger');
             var target = evt.detail.target;
+            var requestConfig = evt.detail.requestConfig || {};
+            if (requestConfig.boosted || (target && target.id === 'app-shell')) {
+                return false;
+            }
             if (trigger && trigger.indexOf('load') !== -1 && target && target.id !== 'modal-content') {
                 return false;
             }

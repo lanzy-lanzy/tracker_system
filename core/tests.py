@@ -289,6 +289,8 @@ class ApiContractTests(TestCase):
         self.assertContains(response, 'hx-boost="true"')
         self.assertContains(response, 'hx-target="#app-shell"')
         self.assertContains(response, 'hx-select="#app-shell"')
+        self.assertContains(response, "requestConfig.boosted")
+        self.assertContains(response, "target.id === 'app-shell'")
 
     def test_page_scripts_can_run_after_boosted_swaps(self):
         with open("static/js/dashboard-api.js", encoding="utf-8") as f:
